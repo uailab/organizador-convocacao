@@ -192,13 +192,7 @@ Tentativas de acesso ao painel administrativo por usuários não proprietários 
 
 ## Status do Projeto
 
-| Item | Status |
-|------|--------|
-| Desenvolvimento | Concluído |
-| Homologação | Em fase final |
-| Produção | Aguardando aprovação final |
-
-> Este projeto está em **fase final de homologação** junto às áreas demandantes (GEPER, COSPERE e COAPER). Não há módulos futuros planejados. Eventuais ajustes serão pontuais para adequação às regras de negócio identificadas durante a homologação.
+> Este projeto está em **fase de homologação** junto às áreas demandantes (GEPER, COSPERE e COAPER). Não há módulos futuros planejados. Eventuais ajustes serão pontuais para adequação às regras de negócio identificadas durante a homologação.
 
 ---
 
@@ -211,7 +205,7 @@ Tentativas de acesso ao painel administrativo por usuários não proprietários 
 
 ---
 
-## Uso e Propriedade
+## Observações
 
 > Esta ferramenta é um **protótipo de uso interno**, desenvolvido exclusivamente para atender às demandas da **GEPER/COSPERE/COAPER** no âmbito do **Tribunal de Justiça do Estado de Minas Gerais — TJMG**.
 
