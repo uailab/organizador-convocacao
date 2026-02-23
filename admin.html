@@ -1,0 +1,1514 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <base target="_top">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin - Configurações Padrão</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://unpkg.com/@popperjs/core@2"></script>
+    <script src="https://unpkg.com/tippy.js@6"></script>
+    
+    <style>
+      .dragging {
+        opacity: 0.5;
+      }
+      .drag-over {
+        border-color: #3b82f6 !important;
+        background-color: #eff6ff !important;
+      }
+      .spinner {
+        border: 3px solid #f3f4f6;
+        border-top: 3px solid #3b82f6;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+      }
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+      .animate-spin {
+        animation: spin 1s linear infinite;
+      }
+      .scrollbar-hide {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+      .scrollbar-hide::-webkit-scrollbar {
+        display: none;
+      }
+      .collapsible-content {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease-out;
+      }
+      .collapsible-content.active {
+        max-height: none;
+        transition: max-height 0.5s ease-in;
+      }
+      .tippy-box[data-theme~='custom'] {
+        background-color: #1f2937;
+        color: white;
+        font-size: 12px;
+        line-height: 1.4;
+        border-radius: 6px;
+        padding: 8px 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      }
+      .toast-container {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        max-width: 400px;
+      }
+      .toast {
+        padding: 16px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        display: flex;
+        align-items: start;
+        gap: 12px;
+        animation: slideIn 0.3s ease-out;
+        border-left: 4px solid;
+        position: relative;
+        overflow: hidden;
+      }
+      .toast.success {
+        background-color: #d1fae5;
+        border-color: #10b981;
+        color: #065f46;
+      }
+      .toast.error {
+        background-color: #fee2e2;
+        border-color: #ef4444;
+        color: #991b1b;
+      }
+      .toast.info {
+        background-color: #dbeafe;
+        border-color: #3b82f6;
+        color: #1e40af;
+      }
+      .toast-close {
+        margin-left: auto;
+        cursor: pointer;
+        opacity: 0.7;
+        transition: opacity 0.2s;
+      }
+      .toast-close:hover {
+        opacity: 1;
+      }
+      .toast-progress {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        height: 4px;
+        opacity: 0.3;
+        width: 100%;
+        transform-origin: left;
+        transition: none;
+      }
+      .toast.success .toast-progress { background-color: #10b981; }
+      .toast.error .toast-progress { background-color: #ef4444; }
+      .toast.info .toast-progress { background-color: #3b82f6; }
+      @keyframes slideIn {
+        from { transform: translateX(400px); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+      }
+      @keyframes slideOut {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(400px); opacity: 0; }
+      }
+      .toast.removing {
+        animation: slideOut 0.3s ease-out forwards;
+      }
+      .modal-overlay {
+        animation: fadeIn 0.2s ease-out;
+      }
+      .modal-overlay.closing {
+        animation: fadeOut 0.2s ease-out forwards;
+      }
+      .modal-content {
+        animation: modalSlideIn 0.3s ease-out;
+      }
+      @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+      @keyframes fadeOut {
+        from { opacity: 1; }
+        to { opacity: 0; }
+      }
+      @keyframes modalSlideIn {
+        from { opacity: 0; transform: scale(0.95) translateY(-20px); }
+        to { opacity: 1; transform: scale(1) translateY(0); }
+      }
+      *:focus {
+        outline: none;
+      }
+      *:focus-visible {
+        outline: 2px solid #3b82f6;
+        outline-offset: 2px;
+      }
+      .border-main {
+        border-color: #949494;
+      }
+      .bg-main {
+        background-color: #949494;
+      }
+      .bloco-modal {
+        box-shadow: 0px 6px 6px 0px rgba(0, 0, 0, 0.3);
+        transition: box-shadow 0.15s ease;
+      }
+      .bloco-modal:hover {
+        box-shadow: 0px 1px 2px 0px rgba(0, 0, 0, 0.15);
+      }
+    </style>
+    <!-- Config e ambiente embutidos pelo servidor (elimina round trips do google.script.run) -->
+    <script>
+      const CONFIG_PADRAO_INICIAL = JSON.parse('<?!= configPadraoInicial ?>');
+      const PUBLIC_URL_INICIAL = "<?!= publicUrlInicial ?>";
+      const ADMIN_URL_INICIAL = "<?!= adminUrlInicial ?>";
+    </script>
+  </head>
+  <body class="bg-gray-50 min-h-screen">
+    
+    <!-- Toast Container -->
+    <div id="toastContainer" class="toast-container" role="region" aria-live="polite"></div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="modal-overlay hidden fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50">
+      <div class="modal-content bg-white rounded-lg p-8 flex flex-col items-center gap-4">
+        <div class="spinner"></div>
+        <p id="loadingText" class="text-gray-700 font-medium">Carregando configurações...</p>
+      </div>
+    </div>
+
+    <!-- Modal de Edição de Padrão -->
+    <div id="editPatternModal" class="modal-overlay hidden fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div class="modal-content bg-white rounded-lg max-w-4xl w-full max-h-[90vh] flex flex-col shadow-xl">
+        <div class="px-6 py-4 border-b border-main flex items-center justify-between flex-shrink-0">
+          <div class="flex items-center gap-3">
+            <i data-lucide="edit-3" class="w-6 h-6 text-gray-700"></i>
+            <h2 class="text-lg font-semibold text-gray-900">Editar Padrão do Bloco</h2>
+          </div>
+          <button onclick="closeEditPatternModal()" class="text-gray-400 hover:text-gray-600">
+            <i data-lucide="x" class="w-6 h-6"></i>
+          </button>
+        </div>
+
+        <div class="px-6 py-4 overflow-y-auto flex-1">
+          <div class="mb-4 p-3 bg-gray-50 border border-main rounded-lg">
+            <div class="flex items-center gap-2">
+              <i data-lucide="info" class="w-4 h-4 text-gray-600"></i>
+              <span class="text-sm font-medium text-gray-600" id="editPatternBlocoNome"></span>
+            </div>
+          </div>
+
+          <div class="mb-4 p-3 bg-gray-50 border border-gray-200 rounded-lg">
+            <div class="flex items-center justify-between gap-3">
+              <div class="flex items-center gap-2 flex-1 min-w-0">
+                <i data-lucide="sparkles" class="w-4 h-4 text-gray-500 flex-shrink-0"></i>
+                <div id="modalSugestaoConteudo" class="text-xs text-gray-600">Calculando...</div>
+              </div>
+              <button id="btnAplicarSugestao" onclick="aplicarSugestaoModal()" class="px-3 py-1.5 bg-white text-gray-700 border border-gray-300 rounded-lg text-xs font-medium hover:bg-gray-50 flex items-center gap-1.5">
+                <i data-lucide="check" class="w-3.5 h-3.5"></i>
+                Usar
+              </button>
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label class="block text-sm font-semibold text-gray-900 mb-1 pt-2">Adicionar vagas ao padrão</label>
+            <p class="text-xs text-gray-600 mb-3">Clique no tipo de vaga abaixo para adicioná-la ao padrão do bloco</p>
+            <div class="flex gap-2 bg-gray-50 border border-gray-200 rounded-lg p-3">
+              <button id="modalAddAC" class="px-3 py-1 bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 text-sm font-medium flex items-center gap-1">
+                <i data-lucide="plus" class="w-4 h-4"></i>
+                AC
+              </button>
+              <button id="modalAddPN" class="px-3 py-1 bg-amber-100 text-amber-700 rounded-md hover:bg-amber-200 text-sm font-medium flex items-center gap-1">
+                <i data-lucide="plus" class="w-4 h-4"></i>
+                PN
+              </button>
+              <button id="modalAddPcD" class="px-3 py-1 bg-purple-100 text-purple-700 rounded-md hover:bg-purple-200 text-sm font-medium flex items-center gap-1">
+                <i data-lucide="plus" class="w-4 h-4"></i>
+                PcD
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-semibold text-gray-900 mb-1 pt-2">Padrão do bloco (se repete ciclicamente)</label>
+            <p class="text-xs text-gray-600 mb-3">Clique e arraste o bloco da vaga para alterar sua posição. Clique no <strong>X</strong> para removê-la</p>
+            <div id="modalPatternContainer" class="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-8 gap-2 mb-4 min-h-[100px] p-4 border border-gray-200 rounded-lg bg-gray-50"></div>
+          </div>
+
+          <label class="block text-sm font-semibold text-gray-900 mb-3 pt-2">Análise do Padrão</label>
+          <div id="modalPatternAnalysis" class="bg-gray-50 border border-gray-200 rounded-lg p-3">
+            <div id="modalPatternStats" class="grid grid-cols-1 md:grid-cols-3 gap-3"></div>
+          </div>
+        </div>
+
+        <div class="px-6 py-4 border-t border-main flex justify-end gap-3 flex-shrink-0">
+          <button onclick="closeEditPatternModal()" class="px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded-lg font-medium hover:bg-gray-50">
+            Cancelar
+          </button>
+          <button onclick="salvarPadraoBloco()" class="px-4 py-2 bg-gray-900 text-white rounded-lg font-medium hover:bg-gray-800">
+            Salvar Padrão
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div
+      id="confirmationModal"
+      class="modal-overlay hidden fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+      role="dialog"
+      aria-labelledby="confirmationTitle"
+      aria-modal="true"
+    >
+      <div class="modal-content bg-white rounded-lg max-w-md w-full flex flex-col shadow-xl">
+        <div class="px-6 py-4 border-b border-main flex items-center justify-between flex-shrink-0">
+          <div class="flex items-center gap-3">
+            <i id="confirmationIcon" data-lucide="alert-triangle" class="w-6 h-6 text-amber-600"></i>
+            <h2 id="confirmationTitle" class="text-lg font-semibold text-gray-900">Confirmar Ação</h2>
+          </div>
+        </div>
+
+        <div id="confirmationContent" class="px-6 py-4 overflow-y-auto max-h-[60vh] flex-1">
+          <p class="text-sm text-gray-700 whitespace-pre-line"></p>
+        </div>
+
+        <div class="px-6 py-4 border-t border-main flex justify-end gap-3 flex-shrink-0">
+          <button
+            id="confirmationCancel"
+            class="px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+          >
+            Cancelar
+          </button>
+          <button
+            id="confirmationConfirm"
+            class="px-4 py-2 bg-gray-900 text-white rounded-lg font-medium hover:bg-gray-800 transition-colors"
+          >
+            Continuar
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Header -->
+    <header class="bg-white border-b border-gray-200 shadow-sm">
+      <div class="max-w-6xl mx-auto px-4 py-6">
+        <div class="flex items-center gap-3">
+          <i data-lucide="settings" class="w-8 h-8 text-gray-700"></i>
+          <div>
+            <h1 class="text-2xl font-semibold text-gray-900">Configurações de Administrador</h1>
+            <p class="text-sm text-gray-500">Defina os valores padrão da ferramenta</p>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 py-8">
+      
+      <!-- Card de Informações -->
+      <div class="bg-gray-50 border border-main rounded-lg p-4 mb-6">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <i data-lucide="link" class="w-4 h-4 text-gray-500"></i>
+            <a 
+              id="publicUrlLink" 
+              href="#"
+              target="_top"
+              class="text-sm text-blue-600 hover:text-blue-800 hover:underline font-medium"
+            >
+              Voltar para a ferramenta pública
+            </a>
+          </div>
+          <button 
+            id="btnCopiarLink"
+            onclick="copiarLinkPublico()" 
+            class="px-3 py-1.5 bg-white text-gray-700 border border-gray-300 rounded-lg text-xs font-medium hover:bg-gray-50 flex items-center gap-1.5 transition-colors"
+          >
+            <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+            <span>Copiar Link</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Layout Master-Detail -->
+      <div class="flex flex-col lg:flex-row gap-6">
+        
+        <!-- COLUNA ESQUERDA: Lista de Blocos -->
+        <div class="lg:w-[350px] flex-shrink-0 flex flex-col">
+          <div class="bg-gray-50 border border-main rounded-t-lg px-5 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <i data-lucide="layers" class="w-5 h-5 text-gray-700"></i>
+              <h3 class="font-semibold text-base text-gray-900">Blocos de Distribuição</h3>
+            </div>
+            <button id="addBlocoMaster" class="p-2 bg-white hover:bg-gray-50 rounded-lg transition-colors border" style="border-color: #000000;">
+              <i data-lucide="plus" class="w-4 h-4 text-gray-700"></i>
+            </button>
+          </div>
+          
+          <div class="flex-1 overflow-y-auto bg-white border-x border-b border-main rounded-b-lg max-h-[400px] lg:max-h-[600px]">
+            <div id="blocosListaMaster" class="p-3 space-y-2"></div>
+          </div>
+          
+          <div class="mt-4">
+            <button 
+              id="resetBlocosMaster" 
+              class="w-full px-4 py-2.5 bg-white text-gray-700 border rounded-lg text-sm font-medium hover:bg-gray-50 flex items-center justify-center gap-2 transition-all" style="border-color: #000000;"
+            >
+              <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+              <span id="resetBlocosText">Restaurar Padrão de Fábrica</span>
+            </button>
+          </div>
+        </div>
+        
+        <!-- COLUNA DIREITA: Editor do Bloco -->
+        <div class="flex-1 flex flex-col min-w-0">
+          <div id="blocoEditorArea" class="flex-1 bg-white rounded-lg border border-main overflow-hidden flex flex-col">
+            
+            <div id="editorEstadoVazio" class="flex-1 flex items-center justify-center p-8">
+              <div class="text-center max-w-sm">
+                <div class="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
+                  <i data-lucide="layers" class="w-8 h-8 text-gray-400"></i>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-900 mb-2">Nenhum bloco selecionado</h3>
+                <p class="text-sm text-gray-500 mb-6">Selecione um bloco na lista ao lado para editar suas configurações</p>
+                <button onclick="adicionarBloco()" class="inline-flex items-center gap-2 px-6 py-3 bg-gray-900 text-white rounded-lg font-medium hover:bg-gray-800">
+                  <i data-lucide="plus" class="w-4 h-4"></i>
+                  Adicionar Primeiro Bloco
+                </button>
+              </div>
+            </div>
+            
+            <div id="editorBlocoConteudo" class="hidden flex-1 flex flex-col">
+              <div class="bg-gray-50 border-b border-main px-6 py-4">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-3">
+                    <div id="editorBlocoNumero" class="flex items-center justify-center w-10 h-10 bg-gray-900 text-white rounded-lg text-base font-bold">1</div>
+                    <div>
+                      <h3 id="editorBlocoNome" class="text-lg font-bold text-gray-900">Principal</h3>
+                      <p id="editorBlocoInfo" class="text-xs text-gray-600 mt-0.5">Até posição ∞ • 10 vagas/ciclo</p>
+                    </div>
+                  </div>
+                  
+                  <div class="flex items-center gap-2">
+                    <button id="editorRemoverBloco" class="hidden px-3 py-2 text-sm font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg flex items-center gap-2 border border-red-200 hover:border-red-300">
+                      <i data-lucide="trash-2" class="w-4 h-4"></i>
+                      <span class="hidden sm:inline">Remover</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="flex-1 overflow-y-auto p-6 space-y-6">
+                <div>
+                  <div class="flex items-center gap-2 mb-3">
+                    <i data-lucide="map-pin" class="w-4 h-4 text-gray-700"></i>
+                    <label class="text-sm font-semibold text-gray-900">Aplicação do Padrão</label>
+                    <span class="tooltip-trigger cursor-help inline-flex" data-tippy-content="Define o intervalo de posições onde este padrão será aplicado">
+                      <i data-lucide="help-circle" class="w-3.5 h-3.5 text-gray-400"></i>
+                    </span>
+                  </div>
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-md">
+                    <div>
+                      <label class="block text-xs font-semibold text-gray-700 mb-2">Da posição</label>
+                      <div id="editorPosicaoInicio" class="px-3 py-2.5 border border-gray-300 rounded-lg text-sm font-semibold bg-gray-50 text-gray-900">1</div>
+                    </div>
+                    <div>
+                      <label class="block text-xs font-semibold text-gray-700 mb-2">Até a posição</label>
+                      <input type="number" id="editorPosicaoFim" min="1" placeholder="∞ (restante)" class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm" />
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="h-px bg-main"></div>
+                
+                <div>
+                  <div class="flex items-center gap-2 mb-3">
+                    <i data-lucide="target" class="w-4 h-4 text-gray-700"></i>
+                    <label class="text-sm font-semibold text-gray-900">Metas de Distribuição</label>
+                    <span class="tooltip-trigger cursor-help inline-flex" data-tippy-content="Define os percentuais desejados para cada tipo de cota">
+                      <i data-lucide="help-circle" class="w-3.5 h-3.5 text-gray-400"></i>
+                    </span>
+                  </div>
+                  <div id="editorMetas" class="grid grid-cols-1 sm:grid-cols-3 gap-4"></div>
+                  <div id="editorPercentValidation" class="hidden mt-3"></div>
+                </div>
+                
+                <div class="h-px bg-main"></div>
+                
+                <div>
+                  <div class="flex items-center justify-between mb-3">
+                    <div class="flex items-center gap-2">
+                      <i data-lucide="layout-grid" class="w-4 h-4 text-gray-700"></i>
+                      <label class="text-sm font-semibold text-gray-900">Padrão de Distribuição</label>
+                      <span class="tooltip-trigger cursor-help inline-flex" data-tippy-content="Sequência de vagas que se repete ciclicamente">
+                        <i data-lucide="help-circle" class="w-3.5 h-3.5 text-gray-400"></i>
+                      </span>
+                    </div>
+                    <button id="editorEditarPadrao" class="px-3 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 bg-white hover:bg-gray-50 rounded-lg flex items-center gap-2 border" style="border-color: #000000;">
+                      <i data-lucide="edit-2" class="w-4 h-4"></i>
+                      <span class="hidden sm:inline">Editar Padrão</span>
+                    </button>
+                  </div>
+                  
+                  <div class="p-4 bg-gray-50 rounded-lg border border-main">
+                    <div id="editorPreviewPadrao" class="flex flex-wrap gap-2 min-h-[60px] items-center"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Botão de Salvar -->
+      <div class="mt-6 bg-white border border-main rounded-lg p-4 sm:p-6">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div class="flex-1">
+            <h3 class="text-base font-semibold text-gray-900 mb-1">Salvar Configurações</h3>
+            <p class="text-sm text-gray-500">Estas configurações serão aplicadas como padrão para todos os usuários da ferramenta</p>
+          </div>
+          <button 
+            id="btnSalvarConfig"
+            onclick="salvarConfigPadrao()" 
+            class="w-full sm:w-auto px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 flex items-center justify-center gap-2 transition-all flex-shrink-0"
+          >
+            <i data-lucide="save" class="w-4 h-4"></i>
+            <span id="btnSalvarText">Salvar como Padrão</span>
+          </button>
+        </div>
+      </div>
+
+    </main>
+
+    <script>
+      const CONFIG = {
+        TIPOS_COTAS: {
+          AC: {
+            id: "AC",
+            nome: "Ampla Concorrência",
+            nomeAbreviado: "Ampla",
+            tooltip: "Ampla Concorrência",
+            descricao: "Vagas de ampla concorrência, sem restrição de cotas",
+            cor: {
+              bg: "bg-blue-100",
+              text: "text-blue-700",
+              border: "border-blue-300",
+              badge: "bg-blue-100 text-blue-700",
+              icon: "text-blue-500",
+            },
+          },
+          PN: {
+            id: "PN",
+            nome: "Pessoa Negra",
+            nomeAbreviado: "Negro",
+            tooltip: "Pessoa Negra",
+            descricao: "Vagas reservadas para candidatos autodeclarados negros (pretos e pardos)",
+            cor: {
+              bg: "bg-amber-100",
+              text: "text-amber-700",
+              border: "border-amber-300",
+              badge: "bg-amber-100 text-amber-700",
+              icon: "text-amber-500",
+            },
+          },
+          PcD: {
+            id: "PcD",
+            nome: "Pessoa com Deficiência",
+            nomeAbreviado: "PcD",
+            tooltip: "Pessoa com Deficiência",
+            descricao: "Vagas reservadas para pessoas com deficiência",
+            cor: {
+              bg: "bg-purple-100",
+              text: "text-purple-700",
+              border: "border-purple-300",
+              badge: "bg-purple-100 text-purple-700",
+              icon: "text-purple-500",
+            },
+          },
+        },
+        VALIDACAO: {
+          PERCENTUAL_TOTAL_ESPERADO: 100,
+          DIFERENCA_PADRAO_AVISO: 2,
+          DIFERENCA_PADRAO_CRITICO: 5,
+          MIN_VAGAS_PADRAO: 1,
+        },
+      };
+
+      const getCotaConfig = (tipoCota) => CONFIG.TIPOS_COTAS[tipoCota] || null;
+      const getCotasDisponiveis = () => Object.keys(CONFIG.TIPOS_COTAS);
+
+      // Variáveis globais
+      let blocosDistribuicao = [];
+      let blocoSelecionadoId = null;
+      let blocoEmEdicao = null;
+      let ultimoIndiceBlocoSelecionado = 0;
+      let padraoTemporario = [];
+      let linkPublico = '';
+
+      // ============================================
+      // INICIALIZAÇÃO
+      // ============================================
+
+      document.addEventListener('DOMContentLoaded', () => {
+        lucide.createIcons();
+        carregarConfiguracoesDoBackend();
+        setupEventListeners();
+        carregarLinkPublico();
+      });
+
+      function setupEventListeners() {
+        document.getElementById('addBlocoMaster').addEventListener('click', adicionarBloco);
+        document.getElementById('resetBlocosMaster').addEventListener('click', resetBlocos);
+        document.getElementById('editorRemoverBloco').addEventListener('click', () => {
+          if (blocoSelecionadoId) removerBloco(blocoSelecionadoId);
+        });
+        document.getElementById('editorPosicaoFim').addEventListener('change', (e) => {
+          if (blocoSelecionadoId) alterarLimiteBloco(blocoSelecionadoId, e.target.value);
+        });
+        document.getElementById('editorEditarPadrao').addEventListener('click', () => {
+          if (blocoSelecionadoId) editarBloco(blocoSelecionadoId);
+        });
+      }
+
+      // ============================================
+      // COMUNICAÇÃO COM BACKEND
+      // ============================================
+
+      function carregarConfiguracoesDoBackend() {
+        // Config embutida pelo servidor — sem round trip
+        try {
+          const config = CONFIG_PADRAO_INICIAL;
+          blocosDistribuicao = config.blocos || [];
+          if (blocosDistribuicao.length > 0) {
+            blocoSelecionadoId = blocosDistribuicao[0].id;
+          }
+        } catch (error) {
+          console.error('Erro ao aplicar config inicial:', error);
+        }
+        renderBlocos();
+      }
+
+      function salvarConfigPadrao() {
+        const config = {
+          blocos: blocosDistribuicao
+        };
+
+        const btn = document.getElementById('btnSalvarConfig');
+        const btnText = document.getElementById('btnSalvarText');
+        
+        if (!btn || !btnText) {
+          console.error('Botão de salvar não encontrado');
+          showToast('Erro interno: botão não encontrado', 'error');
+          return;
+        }
+        
+        showLoading('Salvando configurações...');
+
+        google.script.run
+          .withSuccessHandler((response) => {
+            hideLoading();
+            if (response.success) {
+              showToast(response.message, 'success');
+            } else {
+              showToast(response.message, 'error');
+            }
+          })
+          .withFailureHandler((error) => {
+            hideLoading();
+            console.error('Erro ao salvar:', error);
+            showToast('Erro ao salvar configurações', 'error');
+          })
+          .salvarConfigPadrao(config);
+      }
+
+      function carregarLinkPublico() {
+        // URL embutida pelo servidor — sem round trip
+        linkPublico = PUBLIC_URL_INICIAL;
+        document.getElementById('publicUrlLink').href = PUBLIC_URL_INICIAL;
+      }
+
+      function copiarLinkPublico() {
+        if (!linkPublico) {
+          showToast('Aguarde o carregamento do link...', 'info');
+          return;
+        }
+        
+        const btn = document.getElementById('btnCopiarLink');
+        const btnText = btn.querySelector('span');
+        const originalText = btnText.textContent;
+        
+        navigator.clipboard.writeText(linkPublico).then(() => {
+          btnText.textContent = 'Copiado!';
+          showToast('Link copiado!', 'success');
+          setTimeout(() => {
+            btnText.textContent = originalText;
+          }, 2000);
+        }).catch(() => {
+          const tempInput = document.createElement('input');
+          tempInput.value = linkPublico;
+          document.body.appendChild(tempInput);
+          tempInput.select();
+          document.execCommand('copy');
+          document.body.removeChild(tempInput);
+          btnText.textContent = 'Copiado!';
+          showToast('Link copiado!', 'success');
+          setTimeout(() => {
+            btnText.textContent = originalText;
+          }, 2000);
+        });
+      }
+
+      // ============================================
+      // HELPERS REUTILIZADOS
+      // ============================================
+
+      const BlocoHelper = {
+        criarBloco(id = null) {
+          return {
+            id: id || Date.now(),
+            quantidadeTotal: null,
+            percentuais: { AC: 60, PN: 30, PcD: 10 },
+            padrao: [
+              { tipo: "AC", repeticoes: 2 },
+              { tipo: "PN", repeticoes: 1 },
+              { tipo: "AC", repeticoes: 1 },
+            ]
+          };
+        },
+        contarVagasBloco(bloco) {
+          return bloco.padrao.reduce((sum, p) => sum + p.repeticoes, 0);
+        },
+        calcularRangeBloco(bloco, blocoIndex, blocos) {
+          let inicio = 1;
+          for (let i = 0; i < blocoIndex; i++) {
+            if (blocos[i].quantidadeTotal) {
+              inicio = blocos[i].quantidadeTotal + 1;
+            }
+          }
+          const fim = bloco.quantidadeTotal;
+          if (fim == null) {
+            return inicio === 1 ? "Todas as posições" : `Posições ${inicio} em diante`;
+          }
+          return inicio === fim ? `Posição ${inicio}` : `Posições ${inicio} a ${fim}`;
+        }
+      };
+
+      const ValidationManager = {
+        validarPercentuais(percentuais) {
+          const total = Object.values(percentuais).reduce((sum, val) => sum + val, 0);
+          const totalArredondado = parseFloat(total.toFixed(1));
+          return {
+            valido: totalArredondado === CONFIG.VALIDACAO.PERCENTUAL_TOTAL_ESPERADO,
+            total: totalArredondado.toFixed(1),
+          };
+        }
+      };
+
+      // ============================================
+      // UI HELPERS
+      // ============================================
+
+      function showLoading(message = 'Carregando configurações...') {
+        document.getElementById('loadingText').textContent = message;
+        document.getElementById('loadingOverlay').classList.remove('hidden', 'closing');
+      }
+
+      function hideLoading() {
+        const overlay = document.getElementById('loadingOverlay');
+        overlay.classList.add('closing');
+        setTimeout(() => {
+          overlay.classList.remove('closing');
+          overlay.classList.add('hidden');
+        }, 200);
+      }
+
+      const TOAST_DURATION = 5000;
+
+      function showToast(message, type = 'info', duration = TOAST_DURATION) {
+        const container = document.getElementById('toastContainer');
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.setAttribute('role', 'alert');
+        toast.setAttribute('aria-live', 'assertive');
+
+        const icons = { error: 'alert-circle', success: 'check-circle', info: 'info' };
+
+        toast.innerHTML = `
+          <i data-lucide="${icons[type]}" class="w-5 h-5 flex-shrink-0" aria-hidden="true"></i>
+          <span class="flex-1 text-sm font-medium">${message}</span>
+          <button class="toast-close" onclick="this.parentElement.remove()" aria-label="Fechar notificação">
+            <i data-lucide="x" class="w-4 h-4" aria-hidden="true"></i>
+          </button>
+          <div class="toast-progress"></div>
+        `;
+
+        container.appendChild(toast);
+        lucide.createIcons();
+        _setupToastProgress(toast, duration);
+      }
+
+      function _setupToastProgress(toast, duration) {
+        const progressBar = toast.querySelector('.toast-progress');
+        let startTime = Date.now();
+        let elapsedBeforePause = 0;
+        let animationId = null;
+        let isPaused = false;
+
+        function updateProgress() {
+          if (isPaused) return;
+          const currentElapsed = elapsedBeforePause + (Date.now() - startTime);
+          const progress = Math.max(0, 1 - currentElapsed / duration);
+          progressBar.style.transform = `scaleX(${progress})`;
+          if (currentElapsed >= duration) {
+            toast.classList.add('removing');
+            setTimeout(() => toast.remove(), 300);
+          } else {
+            animationId = requestAnimationFrame(updateProgress);
+          }
+        }
+
+        toast.addEventListener('mouseenter', () => {
+          if (isPaused) return;
+          isPaused = true;
+          if (animationId) cancelAnimationFrame(animationId);
+          elapsedBeforePause += Date.now() - startTime;
+        });
+        toast.addEventListener('mouseleave', () => {
+          if (!isPaused) return;
+          isPaused = false;
+          startTime = Date.now();
+          animationId = requestAnimationFrame(updateProgress);
+        });
+
+        animationId = requestAnimationFrame(updateProgress);
+      }
+
+      function initTooltips() {
+        document.querySelectorAll('.tooltip-trigger').forEach(el => {
+          if (el._tippy) el._tippy.destroy();
+        });
+        tippy('.tooltip-trigger', {
+          theme: 'custom',
+          placement: 'top',
+          arrow: true,
+          animation: 'fade',
+          duration: [200, 150],
+        });
+      }
+
+      // ============================================
+      // MODAL DE CONFIRMAÇÃO
+      // ============================================
+
+      function showConfirmation(title, message, options = {}) {
+        return new Promise((resolve) => {
+          const modal = document.getElementById('confirmationModal');
+          const titleElement = document.getElementById('confirmationTitle');
+          const contentElement = document.getElementById('confirmationContent').querySelector('p');
+          const iconElement = document.getElementById('confirmationIcon');
+          const confirmBtn = document.getElementById('confirmationConfirm');
+          const cancelBtn = document.getElementById('confirmationCancel');
+
+          titleElement.textContent = title;
+          contentElement.textContent = message;
+
+          const iconConfig = {
+            warning: { icon: 'alert-triangle', color: 'text-amber-600' },
+            error: { icon: 'alert-circle', color: 'text-red-600' },
+            info: { icon: 'info', color: 'text-blue-600' },
+          };
+
+          const config = iconConfig[options.type || 'warning'];
+          iconElement.setAttribute('data-lucide', config.icon);
+          iconElement.className = `w-6 h-6 ${config.color}`;
+
+          confirmBtn.textContent = options.confirmText || 'Continuar';
+          cancelBtn.textContent = options.cancelText || 'Cancelar';
+
+          const handleConfirm = () => {
+            closeConfirmation();
+            resolve(true);
+          };
+
+          const handleCancel = () => {
+            closeConfirmation();
+            resolve(false);
+          };
+
+          const handleEscape = (e) => {
+            if (e.key === 'Escape') {
+              handleCancel();
+            }
+          };
+
+          confirmBtn.replaceWith(confirmBtn.cloneNode(true));
+          cancelBtn.replaceWith(cancelBtn.cloneNode(true));
+
+          const newConfirmBtn = document.getElementById('confirmationConfirm');
+          const newCancelBtn = document.getElementById('confirmationCancel');
+
+          newConfirmBtn.addEventListener('click', handleConfirm);
+          newCancelBtn.addEventListener('click', handleCancel);
+          document.addEventListener('keydown', handleEscape);
+
+          modal.classList.remove('hidden');
+          document.body.style.overflow = 'hidden';
+          lucide.createIcons();
+
+          setTimeout(() => newCancelBtn.focus(), 100);
+
+          // Cleanup
+          modal.addEventListener('transitionend', function cleanup() {
+            if (modal.classList.contains('hidden')) {
+              document.removeEventListener('keydown', handleEscape);
+              modal.removeEventListener('transitionend', cleanup);
+            }
+          });
+        });
+      }
+
+      function closeConfirmation() {
+        const modal = document.getElementById('confirmationModal');
+        modal.classList.add('closing');
+
+        setTimeout(() => {
+          modal.classList.remove('closing');
+          modal.classList.add('hidden');
+          document.body.style.overflow = '';
+        }, 200);
+      }
+
+      // ============================================
+      // RENDER BLOCOS
+      // ============================================
+      
+      function renderBlocos() {
+        const listaMaster = document.getElementById('blocosListaMaster');
+        const estadoVazio = document.getElementById('editorEstadoVazio');
+        const editorConteudo = document.getElementById('editorBlocoConteudo');
+
+        if (blocosDistribuicao.length === 0) {
+          listaMaster.innerHTML = `
+            <div class="text-center py-12 px-4">
+              <div class="inline-flex items-center justify-center w-12 h-12 bg-gray-100 rounded-full mb-3">
+                <i data-lucide="inbox" class="w-6 h-6 text-gray-400"></i>
+              </div>
+              <p class="text-sm text-gray-600 mb-4">Nenhum bloco criado</p>
+              <button onclick="adicionarBloco()" class="w-full px-4 py-2 bg-gray-900 text-white rounded-lg text-sm font-medium hover:bg-gray-800 flex items-center justify-center gap-2">
+                <i data-lucide="plus" class="w-4 h-4"></i>
+                Adicionar Bloco
+              </button>
+            </div>
+          `;
+          estadoVazio.classList.remove('hidden');
+          editorConteudo.classList.add('hidden');
+          lucide.createIcons();
+          return;
+        }
+
+        if (blocoSelecionadoId && !blocosDistribuicao.find(b => b.id === blocoSelecionadoId)) {
+          const indiceAjustado = Math.min(ultimoIndiceBlocoSelecionado, blocosDistribuicao.length - 1);
+          blocoSelecionadoId = blocosDistribuicao[indiceAjustado].id;
+        }
+
+        if (!blocoSelecionadoId && blocosDistribuicao.length > 0) {
+          blocoSelecionadoId = blocosDistribuicao[0].id;
+        }
+
+        renderListaBlocos();
+        renderEditorBloco();
+        lucide.createIcons();
+        setTimeout(initTooltips, 100);
+      }
+
+      function renderListaBlocos() {
+        const listaMaster = document.getElementById('blocosListaMaster');
+        listaMaster.innerHTML = blocosDistribuicao.map((bloco, index) => {
+          const totalVagas = BlocoHelper.contarVagasBloco(bloco);
+          const rangeTexto = BlocoHelper.calcularRangeBloco(bloco, index, blocosDistribuicao);
+          const isSelected = bloco.id === blocoSelecionadoId;
+
+          return `
+            <button onclick="selecionarBloco(${bloco.id})" class="w-full text-left p-4 rounded-lg border transition-all ${isSelected ? 'border-2 border-gray-900 shadow-sm' : 'border-main hover:bg-gray-50'}"
+              style="${isSelected ? 'background-color: #f1f2f3;' : ''}" >
+              <div class="flex items-center gap-3">
+                <div class="flex items-center justify-center w-8 h-8 bg-gray-900 text-white rounded-lg text-sm font-bold flex-shrink-0">${index + 1}</div>
+                <div class="flex-1 min-w-0">
+                  <h4 class="text-sm font-semibold text-gray-900 mb-1 truncate">${rangeTexto}</h4>
+                  <div class="text-xs text-gray-600">${totalVagas} vagas/ciclo</div>
+                </div>
+                ${isSelected ? '<div class="ml-2"><i data-lucide="check" class="w-4 h-4 text-gray-900"></i></div>' : ''}
+              </div>
+            </button>
+          `;
+        }).join('');
+        lucide.createIcons();
+      }
+
+      function renderEditorBloco() {
+        const bloco = blocosDistribuicao.find(b => b.id === blocoSelecionadoId);
+        if (!bloco) {
+          document.getElementById('editorEstadoVazio').classList.remove('hidden');
+          document.getElementById('editorBlocoConteudo').classList.add('hidden');
+          return;
+        }
+
+        document.getElementById('editorEstadoVazio').classList.add('hidden');
+        document.getElementById('editorBlocoConteudo').classList.remove('hidden');
+
+        const blocoIndex = blocosDistribuicao.findIndex(b => b.id === blocoSelecionadoId);
+        const numeroBloco = blocoIndex + 1;
+        const totalVagas = BlocoHelper.contarVagasBloco(bloco);
+        const rangeTexto = BlocoHelper.calcularRangeBloco(bloco, blocoIndex, blocosDistribuicao);
+
+        document.getElementById('editorBlocoNumero').textContent = numeroBloco;
+        document.getElementById('editorBlocoNome').textContent = rangeTexto;
+        document.getElementById('editorBlocoInfo').textContent = `${totalVagas} vagas por ciclo`;
+
+        const btnRemover = document.getElementById('editorRemoverBloco');
+        if (blocoIndex > 0) {
+          btnRemover.classList.remove('hidden');
+        } else {
+          btnRemover.classList.add('hidden');
+        }
+
+        renderEditorMetas(bloco);
+        renderEditorAplicacao(bloco, blocoIndex);
+        renderEditorPreviewPadrao(bloco);
+        lucide.createIcons();
+        setTimeout(initTooltips, 100);
+      }
+
+      function renderEditorMetas(bloco) {
+        const container = document.getElementById('editorMetas');
+        container.innerHTML = getCotasDisponiveis().map(tipo => {
+          const cotaConfig = getCotaConfig(tipo);
+          return `
+            <div class="group">
+              <label class="flex items-center gap-1.5 mb-2">
+                <span class="text-xs font-semibold text-gray-700">${tipo}</span>
+                <span class="tooltip-trigger cursor-help inline-flex" data-tippy-content="${cotaConfig.descricao}">
+                  <i data-lucide="info" class="w-3.5 h-3.5 text-gray-400"></i>
+                </span>
+              </label>
+              <div class="relative">
+                <input type="number" min="0" max="100" value="${bloco.percentuais[tipo]}" onchange="alterarPercentualBloco(${bloco.id}, '${tipo}', this.value)" class="w-full pl-3 pr-10 py-2.5 border border-gray-300 rounded-lg text-sm font-medium" />
+                <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm font-semibold pointer-events-none">%</span>
+              </div>
+            </div>
+          `;
+        }).join('');
+        validarPercentuaisEditor(bloco);
+      }
+
+      function renderEditorAplicacao(bloco, blocoIndex) {
+        let posicaoInicio = 1;
+        for (let i = 0; i < blocoIndex; i++) {
+          if (blocosDistribuicao[i].quantidadeTotal) {
+            posicaoInicio = blocosDistribuicao[i].quantidadeTotal + 1;
+          }
+        }
+        document.getElementById('editorPosicaoInicio').textContent = posicaoInicio;
+        document.getElementById('editorPosicaoFim').value = bloco.quantidadeTotal || '';
+      }
+
+      function renderEditorPreviewPadrao(bloco) {
+        const container = document.getElementById('editorPreviewPadrao');
+        if (!bloco.padrao || bloco.padrao.length === 0) {
+          container.innerHTML = '<span class="text-sm text-gray-400 italic">Padrão vazio</span>';
+          return;
+        }
+
+        let html = '';
+        bloco.padrao.forEach(regra => {
+          const cotaConfig = getCotaConfig(regra.tipo);
+          for (let i = 0; i < regra.repeticoes; i++) {
+            html += `<span class="inline-flex items-center justify-center w-10 h-10 ${cotaConfig.cor.bg} ${cotaConfig.cor.text} border ${cotaConfig.cor.border} rounded-lg text-xs font-bold">${regra.tipo}</span>`;
+          }
+        });
+        container.innerHTML = html;
+      }
+
+      function validarPercentuaisEditor(bloco) {
+        const resultado = ValidationManager.validarPercentuais(bloco.percentuais);
+        const validationDiv = document.getElementById('editorPercentValidation');
+        if (!validationDiv) return;
+
+        if (resultado.valido) {
+          validationDiv.className = 'mt-3 p-2 rounded-lg text-xs bg-green-50 border border-green-200 text-green-800';
+          validationDiv.innerHTML = `<div class="flex items-center gap-2"><i data-lucide="check-circle" class="w-3 h-3"></i><span>Total: ${resultado.total}% - Válido</span></div>`;
+          validationDiv.classList.remove('hidden');
+        } else {
+          validationDiv.className = 'mt-3 p-2 rounded-lg text-xs bg-red-50 border border-red-200 text-red-800';
+          validationDiv.innerHTML = `<div class="flex items-center gap-2"><i data-lucide="alert-circle" class="w-3 h-3"></i><span>Total: ${resultado.total}% - Deve ser 100%</span></div>`;
+          validationDiv.classList.remove('hidden');
+        }
+        lucide.createIcons();
+      }
+
+      // ============================================
+      // AÇÕES DOS BLOCOS
+      // ============================================
+
+      function selecionarBloco(blocoId) {
+        blocoSelecionadoId = blocoId;
+        renderBlocos();
+      }
+
+      function adicionarBloco() {
+        if (blocosDistribuicao.length === 0) {
+          // Usa config padrão embutida para recriar o bloco inicial
+          const defaultConfig = CONFIG_PADRAO_INICIAL;
+          blocosDistribuicao = JSON.parse(JSON.stringify(defaultConfig.blocos));
+          blocoSelecionadoId = blocosDistribuicao[0].id;
+          renderBlocos();
+          showToast('Bloco principal criado', 'success');
+          return;
+        }
+
+        if (blocosDistribuicao.length > 0) {
+          const ultimoBloco = blocosDistribuicao[blocosDistribuicao.length - 1];
+          if (!ultimoBloco.quantidadeTotal) {
+            const totalVagasUltimoBloco = BlocoHelper.contarVagasBloco(ultimoBloco);
+            let limiteAnterior = 0;
+            if (blocosDistribuicao.length > 1) {
+              const penultimoBloco = blocosDistribuicao[blocosDistribuicao.length - 2];
+              limiteAnterior = penultimoBloco.quantidadeTotal || 0;
+            }
+            ultimoBloco.quantidadeTotal = limiteAnterior + totalVagasUltimoBloco;
+          }
+        }
+        
+        const novoBloco = BlocoHelper.criarBloco();
+        if (blocosDistribuicao.length > 0) {
+          novoBloco.padrao = JSON.parse(JSON.stringify(blocosDistribuicao[0].padrao));
+          novoBloco.percentuais = { ...blocosDistribuicao[0].percentuais };
+        }
+        
+        blocosDistribuicao.push(novoBloco);
+        blocoSelecionadoId = novoBloco.id;
+        renderBlocos();
+        showToast('Bloco adicionado com sucesso', 'success');
+      }
+
+      function removerBloco(blocoId) {
+        const blocoIndex = blocosDistribuicao.findIndex(b => b.id === blocoId);
+        ultimoIndiceBlocoSelecionado = blocoIndex;
+
+        if (blocoIndex === 0) {
+          showToast('O primeiro bloco não pode ser removido', 'info');
+          return;
+        }
+        blocosDistribuicao = blocosDistribuicao.filter(b => b.id !== blocoId);
+        renderBlocos();
+        showToast('Bloco removido', 'info');
+      }
+
+
+      function resetBlocos() {
+        const btn = document.getElementById('resetBlocosMaster');
+        const btnText = document.getElementById('resetBlocosText');
+        
+        if (!btn || !btnText) {
+          console.error('Botão de reset não encontrado');
+          showToast('Erro interno: botão não encontrado', 'error');
+          return;
+        }
+        
+        // Modal de confirmação customizada
+        showConfirmation(
+          'Restaurar Padrão de Fábrica',
+          'Deseja realmente restaurar as configurações padrão de fábrica?\n\nIsso irá sobrescrever todas as configurações personalizadas.',
+          {
+            type: 'warning',
+            confirmText: 'Sim, Restaurar',
+            cancelText: 'Cancelar'
+          }
+        ).then((confirmed) => {
+          if (!confirmed) return;
+          
+          showLoading('Restaurando padrão de fábrica...');
+
+          google.script.run
+            .withSuccessHandler(() => {
+              google.script.run
+                .withSuccessHandler((factoryConfig) => {
+                  hideLoading();
+                  blocosDistribuicao = JSON.parse(JSON.stringify(factoryConfig.blocos));
+                  blocoSelecionadoId = blocosDistribuicao.length > 0 ? blocosDistribuicao[0].id : null;
+                  renderBlocos();
+                  showToast('Configurações restauradas para padrão de fábrica!', 'success');
+                })
+                .withFailureHandler(() => {
+                  hideLoading();
+                  showToast('Erro ao carregar padrão de fábrica', 'error');
+                })
+                .getConfigDefault();
+            })
+            .withFailureHandler((error) => {
+              hideLoading();
+              console.error('Erro ao restaurar:', error);
+              showToast('Erro ao restaurar', 'error');
+            })
+            .restaurarFactoryDefault();
+        });
+      }
+
+      function alterarLimiteBloco(blocoId, valor) {
+        const bloco = blocosDistribuicao.find(b => b.id === blocoId);
+        if (bloco) {
+          bloco.quantidadeTotal = valor ? parseInt(valor) : null;
+          renderBlocos();
+        }
+      }
+
+      function alterarPercentualBloco(blocoId, tipo, valor) {
+        const bloco = blocosDistribuicao.find(b => b.id === blocoId);
+        if (bloco) {
+          bloco.percentuais[tipo] = parseFloat(valor) || 0;
+          validarPercentuaisEditor(bloco);
+        }
+      }
+
+      // ============================================
+      // MODAL DE EDIÇÃO
+      // ============================================
+
+      function editarBloco(blocoId) {
+        const blocoIndex = blocosDistribuicao.findIndex(b => b.id === blocoId);
+        const bloco = blocosDistribuicao[blocoIndex];
+        if (!bloco) return;
+
+        blocoEmEdicao = blocoId;
+        padraoTemporario = JSON.parse(JSON.stringify(bloco.padrao));
+
+        const numeroBloco = blocoIndex + 1;
+        const rangeTexto = BlocoHelper.calcularRangeBloco(bloco, blocoIndex, blocosDistribuicao);
+        document.getElementById('editPatternBlocoNome').textContent = `Bloco ${numeroBloco} • ${rangeTexto}`;
+
+        renderModalPattern();
+        analisarPadraoModal();
+        renderSugestaoModal();
+
+        document.getElementById('editPatternModal').classList.remove('hidden');
+        lucide.createIcons();
+        setupModalPatternButtons();
+      }
+
+      function closeEditPatternModal() {
+        document.getElementById('editPatternModal').classList.add('hidden');
+        blocoEmEdicao = null;
+        padraoTemporario = [];
+      }
+
+      function setupModalPatternButtons() {
+        const btnAC = document.getElementById('modalAddAC');
+        const btnPN = document.getElementById('modalAddPN');
+        const btnPcD = document.getElementById('modalAddPcD');
+
+        btnAC.replaceWith(btnAC.cloneNode(true));
+        btnPN.replaceWith(btnPN.cloneNode(true));
+        btnPcD.replaceWith(btnPcD.cloneNode(true));
+
+        document.getElementById('modalAddAC').addEventListener('click', () => adicionarVagaModal('AC'));
+        document.getElementById('modalAddPN').addEventListener('click', () => adicionarVagaModal('PN'));
+        document.getElementById('modalAddPcD').addEventListener('click', () => adicionarVagaModal('PcD'));
+      }
+
+      function adicionarVagaModal(tipo) {
+        padraoTemporario.push({ tipo, repeticoes: 1 });
+        renderModalPattern();
+        analisarPadraoModal();
+      }
+
+      function removerVagaModal(index) {
+        const items = [...document.getElementById('modalPatternContainer').children];
+        if (items.length <= CONFIG.VALIDACAO.MIN_VAGAS_PADRAO) {
+          showToast('Deve haver pelo menos 1 vaga', 'error');
+          return;
+        }
+        items[index].remove();
+        atualizarPadraoModalDePosicoes();
+        analisarPadraoModal();
+      }
+
+      function renderModalPattern() {
+        const container = document.getElementById('modalPatternContainer');
+        container.innerHTML = '';
+        
+        if (padraoTemporario.length === 0) {
+          container.innerHTML = `<div class="col-span-full text-center py-8 text-gray-400"><i data-lucide="inbox" class="w-8 h-8 mx-auto mb-2"></i><p class="text-sm">Nenhuma vaga no padrão</p></div>`;
+          lucide.createIcons();
+          return;
+        }
+
+        let posicao = 1, globalIndex = 0;
+        padraoTemporario.forEach(regra => {
+          for (let i = 0; i < regra.repeticoes; i++) {
+            const item = document.createElement('div');
+            item.draggable = true;
+            item.dataset.tipo = regra.tipo;
+            item.dataset.globalIndex = globalIndex;
+
+            const cotaConfig = getCotaConfig(regra.tipo);
+            const colorClass = `${cotaConfig.cor.bg} ${cotaConfig.cor.text} ${cotaConfig.cor.border}`;
+
+            item.className = 'flex flex-col items-center gap-1 cursor-move';
+
+            item.innerHTML = `
+              <div class="text-lg font-bold text-gray-900">${posicao}ª</div>
+              <div class="${colorClass} border-2 rounded-lg p-3 relative w-full bloco-modal">
+                <button class="absolute top-1 right-1 w-5 h-5 bg-white rounded-full flex items-center justify-center hover:bg-gray-100 text-gray-900" onclick="removerVagaModal(${globalIndex})">
+                  <i data-lucide="x" class="w-3 h-3"></i>
+                </button>
+                <div class="text-xs font-medium text-gray-600 mb-1">${posicao}ª</div>
+                <div class="text-lg font-bold">${regra.tipo}</div>
+              </div>
+            `;
+
+            item.addEventListener('dragstart', handleModalDragStart);
+            item.addEventListener('dragover', handleModalDragOver);
+            item.addEventListener('drop', handleModalDrop);
+            item.addEventListener('dragend', handleModalDragEnd);
+
+            container.appendChild(item);
+            posicao++;
+            globalIndex++;
+          }
+        });
+        lucide.createIcons();
+      }
+
+      let modalDraggedElement = null;
+
+      function handleModalDragStart(e) {
+        modalDraggedElement = e.target;
+        e.target.classList.add('dragging');
+      }
+
+      function handleModalDragOver(e) {
+        e.preventDefault();
+        const target = e.target.closest('[draggable="true"]');
+        if (target && target !== modalDraggedElement) {
+          target.classList.add('drag-over');
+        }
+      }
+
+      function handleModalDrop(e) {
+        e.preventDefault();
+        const target = e.target.closest('[draggable="true"]');
+        if (target && target !== modalDraggedElement) {
+          const container = document.getElementById('modalPatternContainer');
+          const allItems = [...container.children];
+          const draggedIdx = allItems.indexOf(modalDraggedElement);
+          const targetIdx = allItems.indexOf(target);
+          
+          if (draggedIdx < targetIdx) {
+            target.parentNode.insertBefore(modalDraggedElement, target.nextSibling);
+          } else {
+            target.parentNode.insertBefore(modalDraggedElement, target);
+          }
+          
+          atualizarPadraoModalDePosicoes();
+          analisarPadraoModal();
+        }
+        document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+      }
+
+      function handleModalDragEnd(e) {
+        e.target.classList.remove('dragging');
+        document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+      }
+
+      function atualizarPadraoModalDePosicoes() {
+        const items = [...document.getElementById('modalPatternContainer').children];
+        const novoPadrao = [];
+        items.forEach(item => {
+          const tipo = item.dataset.tipo;
+          const ultimo = novoPadrao[novoPadrao.length - 1];
+          if (ultimo && ultimo.tipo === tipo) {
+            ultimo.repeticoes++;
+          } else {
+            novoPadrao.push({ tipo, repeticoes: 1 });
+          }
+        });
+        padraoTemporario = novoPadrao;
+        renderModalPattern();
+      }
+
+      function analisarPadraoModal() {
+        const bloco = blocosDistribuicao.find(b => b.id === blocoEmEdicao);
+        if (!bloco) return;
+
+        const totalVagas = padraoTemporario.reduce((sum, p) => sum + p.repeticoes, 0);
+        const contadores = {};
+        getCotasDisponiveis().forEach(tipo => {
+          contadores[tipo] = padraoTemporario.filter(p => p.tipo === tipo).reduce((sum, p) => sum + p.repeticoes, 0);
+        });
+
+        const percentuaisAtuais = {};
+        getCotasDisponiveis().forEach(tipo => {
+          percentuaisAtuais[tipo] = ((contadores[tipo] / totalVagas) * 100).toFixed(1);
+        });
+
+        function getStatusColor(atual, esperado) {
+          const diff = Math.abs(parseFloat(atual) - esperado);
+          if (diff < CONFIG.VALIDACAO.DIFERENCA_PADRAO_AVISO)
+            return { bg: 'bg-green-50', border: 'border-green-600', text: 'text-green-700', icon: 'check-circle' };
+          if (diff < CONFIG.VALIDACAO.DIFERENCA_PADRAO_CRITICO)
+            return { bg: 'bg-amber-50', border: 'border-amber-600', text: 'text-amber-700', icon: 'alert-circle' };
+          return { bg: 'bg-red-50', border: 'border-red-600', text: 'text-red-700', icon: 'alert-triangle' };
+        }
+
+        let statsHTML = '';
+        getCotasDisponiveis().forEach(tipo => {
+          const cotaConfig = getCotaConfig(tipo);
+          const status = getStatusColor(percentuaisAtuais[tipo], bloco.percentuais[tipo]);
+          statsHTML += `
+            <div class="p-3 ${status.bg} border ${status.border} rounded-lg">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-medium text-gray-600">${cotaConfig.nome} (${tipo})</span>
+                <i data-lucide="${status.icon}" class="w-4 h-4 ${status.text}"></i>
+              </div>
+              <div class="text-2xl font-bold ${status.text}">${percentuaisAtuais[tipo]}%</div>
+              <div class="text-xs text-gray-600 mt-1">${contadores[tipo]}/${totalVagas} • Meta: ${bloco.percentuais[tipo]}%</div>
+            </div>
+          `;
+        });
+
+        document.getElementById('modalPatternStats').innerHTML = statsHTML;
+        lucide.createIcons();
+      }
+
+      function renderSugestaoModal() {
+        const bloco = blocosDistribuicao.find(b => b.id === blocoEmEdicao);
+        if (!bloco) return;
+        
+        const sugestao = calcularPadraoSugerido(bloco.percentuais);
+        const conteudoDiv = document.getElementById('modalSugestaoConteudo');
+        const btnAplicar = document.getElementById('btnAplicarSugestao');
+        
+        if (!sugestao) {
+          conteudoDiv.innerHTML = '<span class="text-gray-500 italic">Nenhuma sugestão ideal encontrada</span>';
+          btnAplicar.disabled = true;
+          return;
+        }
+        
+        const detalhes = getCotasDisponiveis().map(tipo => `<strong>${sugestao.distribuicao[tipo]} ${tipo}</strong>`).join(' • ');
+        conteudoDiv.innerHTML = `<span class="font-medium text-gray-700">Sugestão:</span> ${detalhes} <span class="text-gray-500">(${sugestao.totalVagas} vagas)</span>`;
+        btnAplicar.disabled = false;
+      }
+
+      function calcularPadraoSugerido(percentuais) {
+        for (let totalVagas = 1; totalVagas <= 50; totalVagas++) {
+          const distribuicao = {};
+          getCotasDisponiveis().forEach(tipo => {
+            const ideal = (percentuais[tipo] / 100) * totalVagas;
+            distribuicao[tipo] = Math.round(ideal);
+          });
+          
+          const soma = Object.values(distribuicao).reduce((a, b) => a + b, 0);
+          const diferenca = totalVagas - soma;
+          if (diferenca !== 0) {
+            const tipoMaior = Object.keys(percentuais).reduce((a, b) => percentuais[a] > percentuais[b] ? a : b);
+            distribuicao[tipoMaior] += diferenca;
+          }
+          
+          if (Object.values(distribuicao).some(v => v < 0)) continue;
+          
+          let desvioMaximo = 0;
+          getCotasDisponiveis().forEach(tipo => {
+            const percentualReal = (distribuicao[tipo] / totalVagas) * 100;
+            const desvio = Math.abs(percentualReal - percentuais[tipo]);
+            if (desvio > desvioMaximo) desvioMaximo = desvio;
+          });
+          
+          if (desvioMaximo < CONFIG.VALIDACAO.DIFERENCA_PADRAO_AVISO) {
+            return { totalVagas, distribuicao, desvioMaximo };
+          }
+        }
+        return null;
+      }
+
+      function gerarPadraoIntercalado(distribuicao) {
+        const padrao = [];
+        const tipos = Object.keys(distribuicao).sort((a, b) => distribuicao[b] - distribuicao[a]);
+        const total = Object.values(distribuicao).reduce((a, b) => a + b, 0);
+        let posicoes = {};
+        tipos.forEach(tipo => posicoes[tipo] = 0);
+        
+        for (let i = 0; i < total; i++) {
+          let melhorTipo = null;
+          let melhorScore = -Infinity;
+          tipos.forEach(tipo => {
+            if (posicoes[tipo] >= distribuicao[tipo]) return;
+            const esperado = (i / total) * distribuicao[tipo];
+            const score = esperado - posicoes[tipo];
+            if (score > melhorScore) {
+              melhorScore = score;
+              melhorTipo = tipo;
+            }
+          });
+          
+          if (melhorTipo) {
+            padrao.push({ tipo: melhorTipo, repeticoes: 1 });
+            posicoes[melhorTipo]++;
+          }
+        }
+        
+        const padraoConsolidado = [];
+        padrao.forEach(item => {
+          const ultimo = padraoConsolidado[padraoConsolidado.length - 1];
+          if (ultimo && ultimo.tipo === item.tipo) {
+            ultimo.repeticoes++;
+          } else {
+            padraoConsolidado.push({ ...item });
+          }
+        });
+        return padraoConsolidado;
+      }
+
+      function aplicarSugestaoModal() {
+        const bloco = blocosDistribuicao.find(b => b.id === blocoEmEdicao);
+        if (!bloco) return;
+        
+        const sugestao = calcularPadraoSugerido(bloco.percentuais);
+        if (!sugestao) return;
+        
+        padraoTemporario = gerarPadraoIntercalado(sugestao.distribuicao);
+        renderModalPattern();
+        analisarPadraoModal();
+        showToast('Padrão sugerido aplicado com sucesso!', 'success');
+      }
+
+      function salvarPadraoBloco() {
+        if (padraoTemporario.length === 0) {
+          showToast('O padrão não pode estar vazio', 'error');
+          return;
+        }
+
+        const bloco = blocosDistribuicao.find(b => b.id === blocoEmEdicao);
+        if (!bloco) return;
+
+        bloco.padrao = JSON.parse(JSON.stringify(padraoTemporario));
+        renderBlocos();
+        closeEditPatternModal();
+        showToast('Padrão salvo com sucesso', 'success');
+      }
+
+    </script>
+  </body>
+</html>

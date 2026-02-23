@@ -1,0 +1,5223 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <base target="_top">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Organizador de Convocação</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Tippy.js -->
+    <script src="https://unpkg.com/@popperjs/core@2"></script>
+    <script src="https://unpkg.com/tippy.js@6"></script>
+    <style>
+      .dragging {
+        opacity: 0.5;
+      }
+      .drag-over {
+        border-color: #3b82f6 !important;
+        background-color: #eff6ff !important;
+      }
+      .spinner {
+        border: 3px solid #f3f4f6;
+        border-top: 3px solid #3b82f6;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+      }
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+      .tab-disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+      }
+      .scrollbar-hide {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+      .scrollbar-hide::-webkit-scrollbar {
+        display: none;
+      }
+      .collapsible-content {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease-out;
+      }
+      .collapsible-content.active {
+        max-height: none;
+        transition: max-height 0.5s ease-in;
+      }
+
+      .tippy-box[data-theme~='custom'] {
+        background-color: #1f2937;
+        color: white;
+        font-size: 12px;
+        line-height: 1.4;
+        border-radius: 6px;
+        padding: 8px 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      }
+
+      .tippy-box[data-theme~='custom'][data-placement^='top'] > .tippy-arrow::before {
+        border-top-color: #1f2937;
+      }
+
+      .tippy-box[data-theme~='custom'][data-placement^='bottom'] > .tippy-arrow::before {
+        border-bottom-color: #1f2937;
+      }
+
+      .tippy-box[data-theme~='custom'][data-placement^='left'] > .tippy-arrow::before {
+        border-left-color: #1f2937;
+      }
+
+      .tippy-box[data-theme~='custom'][data-placement^='right'] > .tippy-arrow::before {
+        border-right-color: #1f2937;
+      }
+
+      .tooltip-trigger {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .toast-container {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        max-width: 400px;
+      }
+      .toast {
+        padding: 16px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        display: flex;
+        align-items: start;
+        gap: 12px;
+        animation: slideIn 0.3s ease-out;
+        border-left: 4px solid;
+        position: relative;
+        overflow: hidden;
+      }
+      .toast.success {
+        background-color: #d1fae5;
+        border-color: #10b981;
+        color: #065f46;
+      }
+      .toast.error {
+        background-color: #fee2e2;
+        border-color: #ef4444;
+        color: #991b1b;
+      }
+      .toast.info {
+        background-color: #dbeafe;
+        border-color: #3b82f6;
+        color: #1e40af;
+      }
+      .toast-close {
+        margin-left: auto;
+        cursor: pointer;
+        opacity: 0.7;
+        transition: opacity 0.2s;
+      }
+      .toast-close:hover {
+        opacity: 1;
+      }
+      .toast-progress {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        height: 4px;
+        background-color: currentColor;
+        opacity: 0.3;
+        width: 100%;
+        transform-origin: left;
+        transition: none;
+      }
+      .toast.success .toast-progress {
+        background-color: #10b981;
+      }
+      .toast.error .toast-progress {
+        background-color: #ef4444;
+      }
+      .toast.info .toast-progress {
+        background-color: #3b82f6;
+      }
+      @keyframes slideIn {
+        from {
+          transform: translateX(400px);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+      @keyframes slideOut {
+        from {
+          transform: translateX(0);
+          opacity: 1;
+        }
+        to {
+          transform: translateX(400px);
+          opacity: 0;
+        }
+      }
+      .toast.removing {
+        animation: slideOut 0.3s ease-out forwards;
+      }
+
+      *:focus {
+        outline: none;
+      }
+      body.using-keyboard *:focus {
+        outline: 2px solid #3b82f6;
+        outline-offset: 2px;
+      }
+      *:focus-visible {
+        outline: 2px solid #3b82f6;
+        outline-offset: 2px;
+      }
+      body:not(.using-keyboard) *:focus-visible {
+        outline: 2px solid #3b82f6;
+        outline-offset: 2px;
+      }
+
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border-width: 0;
+      }
+
+      .truncate-label {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
+        display: inline-block;
+        vertical-align: middle;
+      }
+
+      @media print {
+
+        @page {
+          margin-top: 20mm;
+          margin-bottom: 15mm;
+          margin-left: 20mm;
+          margin-right: 20mm;
+        }
+        
+        header,
+        .tab-button,
+        nav,
+        button,
+        #toastContainer,
+        #loadingOverlay,
+        #statsContainer,
+        .border-b.border-gray-200.flex {
+          display: none !important;
+        }
+
+        body {
+          background: white !important;
+          padding: 0 !important;
+          margin: 0 !important;
+        }
+
+        main {
+          max-width: 100% !important;
+          padding: 0 !important;
+        }
+
+        .tab-content {
+          display: none !important;
+        }
+
+        #content-resultado {
+          display: block !important;
+        }
+
+        .bg-white.rounded-lg.border {
+          border: none !important;
+          box-shadow: none !important;
+        }
+
+        .print-only {
+          display: block !important;
+        }
+
+        #printHeader {
+          margin-bottom: 25px;
+        }
+
+        .print-header-content {
+          text-align: center;
+          padding-bottom: 20px;
+          border-bottom: 2px solid #e5e7eb;
+          margin-bottom: 25px;
+        }
+
+        .print-title {
+          font-size: 28pt;
+          font-weight: 700;
+          color: #111827;
+          margin: 0 0 8px 0;
+          letter-spacing: -0.5px;
+        }
+
+        .print-subtitle {
+          font-size: 12pt;
+          color: #6b7280;
+          margin: 0 0 15px 0;
+        }
+
+        .print-info {
+          display: flex;
+          justify-content: center;
+          gap: 20px;
+          font-size: 10pt;
+          color: #9ca3af;
+        }
+
+        .print-legend {
+          margin-bottom: 25px;
+          page-break-inside: avoid;
+        }
+
+        .print-section-title {
+          font-size: 14pt;
+          font-weight: 600;
+          color: #374151;
+          margin: 0 0 12px 0;
+          padding-bottom: 8px;
+          border-bottom: 2px solid #e5e7eb;
+        }
+
+        .print-legend-grid {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 10px;
+          margin-bottom: 5px;
+        }
+
+        .print-legend-card {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 10px 12px;
+          border: 1.5px solid;
+          border-radius: 8px;
+          overflow: hidden;
+        }
+
+        .print-legend-ac {
+          background: #eff6ff;
+          border-color: #93c5fd;
+        }
+
+        .print-legend-pn {
+          background: #fef3c7;
+          border-color: #fcd34d;
+        }
+
+        .print-legend-pcd {
+          background: #f3e8ff;
+          border-color: #d8b4fe;
+        }
+
+        .print-legend-badge {
+          font-size: 12pt;
+          font-weight: 700;
+          min-width: 38px;
+          height: 38px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 6px;
+          background: white;
+          flex-shrink: 0;
+        }
+
+        .print-legend-ac .print-legend-badge {
+          color: #1e40af;
+          border: 2px solid #3b82f6;
+        }
+
+        .print-legend-pn .print-legend-badge {
+          color: #92400e;
+          border: 2px solid #f59e0b;
+        }
+
+        .print-legend-pcd .print-legend-badge {
+          color: #6b21a8;
+          border: 2px solid #a855f7;
+        }
+
+        .print-legend-label {
+          font-size: 9.5pt;
+          font-weight: 600;
+          color: #1f2937;
+        }
+
+        .print-stats {
+          margin-bottom: 25px;
+          page-break-inside: avoid;
+        }
+
+        .print-stats-grid {
+          display: flex;
+          gap: 10px;
+          justify-content: space-between;
+        }
+
+        .print-stat-card {
+          flex: 1;
+          text-align: center;
+          padding: 10px;
+          border: 1.5px solid #949494;
+          border-radius: 8px;
+          background: #f9fafb;
+        }
+
+        .print-stat-label {
+          font-size: 9pt;
+          color: #6b7280;
+          display: block;
+          margin-bottom: 6px;
+        }
+
+        .print-stat-value {
+          font-size: 18pt;
+          font-weight: 700;
+          color: #111827;
+          display: block;
+        }
+
+        .print-stat-percent {
+          font-size: 8pt;
+          color: #9ca3af;
+          display: block;
+          margin-top: 2px;
+        }
+
+        .overflow-x-auto {
+          overflow: visible !important;
+          max-height: none !important;
+        }
+
+        table {
+          page-break-inside: auto;
+          border-collapse: collapse;
+          width: 100%;
+          font-size: 9pt;
+        }
+
+        thead {
+          display: table-header-group;
+        }
+
+        thead th {
+          background: #f3f4f6 !important;
+          padding: 10px 12px !important;
+          font-size: 8pt;
+          font-weight: 600;
+          color: #374151;
+          text-transform: uppercase;
+          border-top: 2px solid #949494;
+          border-bottom: 2px solid #949494;
+        }
+
+        tbody tr {
+          page-break-inside: avoid;
+          page-break-after: auto;
+          border-bottom: 1px solid #e5e7eb;
+        }
+
+        tbody td {
+          padding: 8px 12px !important;
+          color: #1f2937;
+        }
+
+        tbody tr:nth-child(even) {
+          background: #f9fafb;
+        }
+
+        .px-2\.5.py-1.rounded-full {
+          padding: 4px 8px !important;
+          font-size: 8pt !important;
+          font-weight: 600 !important;
+          border: 1px solid !important;
+        }
+
+        .bg-blue-100 {
+          background: #dbeafe !important;
+          color: #1e40af !important;
+          border-color: #93c5fd !important;
+        }
+
+        .bg-amber-100 {
+          background: #fef3c7 !important;
+          color: #92400e !important;
+          border-color: #fcd34d !important;
+        }
+
+        .bg-purple-100 {
+          background: #f3e8ff !important;
+          color: #6b21a8 !important;
+          border-color: #d8b4fe !important;
+        }
+      }
+
+      .print-only {
+        display: none;
+      }
+
+      .modal-overlay {
+        animation: fadeIn 0.2s ease-out;
+      }
+
+      .modal-overlay.closing {
+        animation: fadeOut 0.2s ease-out forwards;
+      }
+
+      .modal-content {
+        animation: modalSlideIn 0.3s ease-out;
+      }
+
+      .modal-overlay.closing .modal-content {
+        animation: modalSlideOut 0.2s ease-out forwards;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+
+      @keyframes fadeOut {
+        from {
+          opacity: 1;
+        }
+        to {
+          opacity: 0;
+        }
+      }
+
+      @keyframes modalSlideIn {
+        from {
+          opacity: 0;
+          transform: scale(0.95) translateY(-20px);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1) translateY(0);
+        }
+      }
+
+      @keyframes modalSlideOut {
+        from {
+          opacity: 1;
+          transform: scale(1) translateY(0);
+        }
+        to {
+          opacity: 0;
+          transform: scale(0.95) translateY(-20px);
+        }
+      }
+
+      .border-main {
+        border-color: #949494;
+      }
+      .bg-main {
+        background-color: #949494;
+      }
+
+      .bloco-modal {
+        box-shadow: 0px 6px 6px 0px rgba(0, 0, 0, 0.3);
+        transition: box-shadow 0.15s ease;
+      }
+      .bloco-modal:hover {
+        box-shadow: 0px 1px 2px 0px rgba(0, 0, 0, 0.15);
+      }
+    </style>
+    <!-- Config embutida pelo servidor (elimina round trip do google.script.run) -->
+    <script>
+      const CONFIG_PADRAO_INICIAL = JSON.parse('<?!= configPadraoInicial ?>');
+      const IS_OWNER_INICIAL = "<?!= isOwnerInicial ?>" === "true";
+      const ADMIN_URL_INICIAL = "<?!= adminUrlInicial ?>";
+    </script>
+  </head>
+  <body class="bg-gray-50 min-h-screen">
+    <!-- Toast Container -->
+    <div
+      id="toastContainer"
+      class="toast-container"
+      role="region"
+      aria-live="polite"
+      aria-label="Notificações"
+    ></div>
+
+    <!-- Loading Overlay -->
+    <div
+      id="loadingOverlay"
+      class="modal-overlay hidden fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50"
+      role="alertdialog"
+      aria-labelledby="loadingText"
+      aria-modal="true"
+    >
+      <div
+        class="modal-content bg-white rounded-lg p-8 flex flex-col items-center gap-4"
+      >
+        <div class="spinner" aria-hidden="true"></div>
+        <p id="loadingText" class="text-gray-700 font-medium">
+          Processando reclassificação...
+        </p>
+      </div>
+    </div>
+
+    <!-- Inconsistencies Modal -->
+    <div
+      id="inconsistenciesModal"
+      class="modal-overlay hidden fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+      role="dialog"
+      aria-labelledby="modalTitle"
+      aria-modal="true"
+    >
+      <div
+        class="modal-content bg-white rounded-lg max-w-2xl w-full max-h-[90vh] flex flex-col"
+      >
+        <div
+          class="p-6 border-b border-gray-200 flex items-center justify-between"
+        >
+          <div class="flex items-center gap-3">
+            <i
+              data-lucide="alert-triangle"
+              class="w-6 h-6 text-amber-600"
+              aria-hidden="true"
+            ></i>
+            <h2 id="modalTitle" class="text-xl font-semibold text-gray-900">
+              Verificação de Inconsistências
+            </h2>
+          </div>
+          <button
+            onclick="closeInconsistenciesModal()"
+            class="text-gray-400 hover:text-gray-600"
+            aria-label="Fechar modal"
+          >
+            <i data-lucide="x" class="w-6 h-6" aria-hidden="true"></i>
+          </button>
+        </div>
+        <div
+          id="inconsistenciesContent"
+          class="p-6 overflow-y-auto flex-1"
+        ></div>
+        <div class="p-6 border-t border-gray-200 flex justify-end">
+          <button
+            onclick="closeInconsistenciesModal()"
+            class="px-6 py-2 bg-gray-900 text-white rounded-lg font-medium hover:bg-gray-800"
+          >
+            Fechar
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Confirmation Dialog -->
+    <div
+      id="confirmationModal"
+      class="modal-overlay hidden fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+      role="dialog"
+      aria-labelledby="confirmationTitle"
+      aria-modal="true"
+    >
+      <div
+        class="modal-content bg-white rounded-lg max-w-md w-full flex flex-col shadow-xl"
+      >
+        <!-- Header Fixo -->
+        <div
+          class="px-6 py-4 border-b border-main flex items-center justify-between flex-shrink-0"
+        >
+          <div class="flex items-center gap-3">
+            <i
+              id="confirmationIcon"
+              data-lucide="alert-triangle"
+              class="w-6 h-6 text-amber-600"
+              aria-hidden="true"
+            ></i>
+            <h2
+              id="confirmationTitle"
+              class="text-lg font-semibold text-gray-900"
+            >
+              Confirmar Ação
+            </h2>
+          </div>
+        </div>
+
+        <!-- Content com Scroll -->
+        <div
+          id="confirmationContent"
+          class="px-6 py-4 overflow-y-auto max-h-[60vh] flex-1"
+        >
+          <p class="text-sm text-gray-700 whitespace-pre-line"></p>
+        </div>
+
+        <!-- Footer Fixo -->
+        <div
+          class="px-6 py-4 border-t border-gray-200 flex justify-end gap-3 flex-shrink-0"
+        >
+          <button
+            id="confirmationCancel"
+            class="px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+          >
+            Cancelar
+          </button>
+          <button
+            id="confirmationConfirm"
+            class="px-4 py-2 bg-gray-900 text-white rounded-lg font-medium hover:bg-gray-800 transition-colors"
+          >
+            Continuar
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal de Edição de Padrão do Bloco -->
+    <div
+      id="editPatternModal"
+      class="modal-overlay hidden fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+      role="dialog"
+      aria-labelledby="editPatternTitle"
+      aria-modal="true"
+    >
+      <div
+        class="modal-content bg-white rounded-lg max-w-4xl w-full max-h-[90vh] flex flex-col shadow-xl"
+      >
+        <!-- Header -->
+        <div
+          class="px-6 py-4 border-b border-main flex items-center justify-between flex-shrink-0"
+        >
+          <div class="flex items-center gap-3">
+            <i
+              data-lucide="edit-3"
+              class="w-6 h-6 text-gray-700"
+              aria-hidden="true"
+            ></i>
+            <h2
+              id="editPatternTitle"
+              class="text-lg font-semibold text-gray-900"
+            >
+              Editar Padrão do Bloco
+            </h2>
+          </div>
+          <button
+            onclick="closeEditPatternModal()"
+            class="text-gray-400 hover:text-gray-600"
+            aria-label="Fechar modal"
+          >
+            <i data-lucide="x" class="w-6 h-6" aria-hidden="true"></i>
+          </button>
+        </div>
+
+        <!-- Content com Scroll -->
+        <div
+          class="px-6 py-4 overflow-y-auto flex-1"
+        >
+          <!-- Nome do Bloco -->
+          <div class="mb-4 p-3 bg-gray-50 border border-main rounded-lg">
+            <div class="flex items-center gap-2">
+              <i data-lucide="info" class="w-4 h-4 text-gray-600"></i>
+              <span class="text-sm font-medium text-gray-600" id="editPatternBlocoNome"></span>
+            </div>
+          </div>
+
+          <!-- Botões de Adicionar Vagas -->
+          <div class="mb-4">
+            <label class="block text-sm font-semibold text-gray-900 mb-1 pt-2">
+              Adicionar vagas ao padrão
+            </label>
+            <p class="text-xs text-gray-600 mb-3">Clique no tipo de vaga abaixo para adicioná-la ao padrão do bloco</p>
+            <div class="flex gap-2 bg-gray-50 border border-gray-200 rounded-lg p-3">
+              <button
+                id="modalAddAC"
+                class="px-3 py-1 bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 text-sm font-medium flex items-center gap-1"
+              >
+                <i data-lucide="plus" class="w-4 h-4"></i>
+                AC
+              </button>
+              <button
+                id="modalAddPN"
+                class="px-3 py-1 bg-amber-100 text-amber-700 rounded-md hover:bg-amber-200 text-sm font-medium flex items-center gap-1"
+              >
+                <i data-lucide="plus" class="w-4 h-4"></i>
+                PN
+              </button>
+              <button
+                id="modalAddPcD"
+                class="px-3 py-1 bg-purple-100 text-purple-700 rounded-md hover:bg-purple-200 text-sm font-medium flex items-center gap-1"
+              >
+                <i data-lucide="plus" class="w-4 h-4"></i>
+                PcD
+              </button>
+            </div>
+          </div>
+
+          <!-- Container do Padrão -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-900 mb-1 pt-2">
+              Padrão do bloco (se repete ciclicamente):
+            </label>
+            <p class="text-xs text-gray-600 mb-3">Clique e arraste o bloco da vaga para alterar sua posição. Clique no <strong>X</strong> para removê-la</p>
+            <div
+              id="modalPatternContainer"
+              class="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-8 gap-2 mb-4 min-h-[100px] p-4 border border-gray-200 rounded-lg bg-gray-50"
+            ></div>
+          </div>
+
+          <!-- Análise do Padrão -->
+          <label class="block text-sm font-semibold text-gray-900 mb-3 pt-2">Análise do Padrão</label>
+          <div id="modalPatternAnalysis" class="bg-gray-50 border border-gray-200 rounded-lg p-3">
+            <div
+              id="modalPatternStats"
+              class="grid grid-cols-1 md:grid-cols-3 gap-3"
+            ></div>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div
+          class="px-6 py-4 border-t border-gray-200 flex justify-end gap-3 flex-shrink-0"
+        >
+          <button
+            onclick="closeEditPatternModal()"
+            class="px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+          >
+            Cancelar
+          </button>
+          <button
+            onclick="salvarPadraoBloco()"
+            class="px-4 py-2 bg-gray-900 text-white rounded-lg font-medium hover:bg-gray-800 transition-colors"
+          >
+            Salvar Padrão
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Header -->
+    <header class="bg-white border-b border-gray-200">
+      <div class="max-w-6xl mx-auto px-4 py-6">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <i data-lucide="list-checks" class="w-8 h-8 text-gray-700"></i>
+            <div>
+              <h1 class="text-2xl font-semibold text-gray-900">
+                Organizador de Convocação
+              </h1>
+              <p class="text-sm text-gray-500">Distribuição de vagas por cotas</p>
+            </div>
+          </div>
+          
+          <!-- Botão Admin (visível apenas para owner) -->
+          <a 
+            id="btnAdmin" 
+            href="#"
+            target="_top"
+            class="hidden px-4 py-2 bg-gray-900 text-white rounded-lg font-medium hover:bg-gray-800 flex items-center gap-2 transition-colors no-underline"
+          >
+            <i data-lucide="settings" class="w-4 h-4"></i>
+            Admin
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 py-8">
+      <!-- Tabs Navigation -->
+      <div class="bg-white rounded-lg shadow-sm border border-main mb-6">
+        <div class="border-b border-main overflow-hidden">
+          <nav
+            class="flex overflow-x-auto scrollbar-hide"
+            role="tablist"
+            style="-webkit-overflow-scrolling: touch"
+          >
+            <button
+              id="tab-upload"
+              class="tab-button tab-active px-6 py-4 border-b-2 border-blue-500 text-blue-600 font-medium text-sm flex items-center gap-2 whitespace-nowrap flex-shrink-0"
+              onclick="switchTab('upload')"
+            >
+              <i data-lucide="upload" class="w-4 h-4"></i>
+              Upload
+            </button>
+            <button
+              id="tab-config"
+              class="tab-button tab-disabled px-6 py-4 border-b-2 border-transparent font-medium text-sm flex items-center gap-2 whitespace-nowrap flex-shrink-0"
+              onclick="switchTab('config')"
+              data-tab-tooltip="Faça o upload de um arquivo CSV para liberar esta aba"
+            >
+              <i data-lucide="settings" class="w-4 h-4"></i>
+              Configuração
+            </button>
+            <button
+              id="tab-resultado"
+              class="tab-button tab-disabled px-6 py-4 border-b-2 border-transparent font-medium text-sm flex items-center gap-2 whitespace-nowrap flex-shrink-0"
+              onclick="switchTab('resultado')"
+              data-tab-tooltip="Processe os dados na aba Configuração para liberar esta aba"
+            >
+              <i data-lucide="check-circle" class="w-4 h-4"></i>
+              Resultado
+            </button>
+          </nav>
+        </div>
+
+        <!-- Tab Content -->
+        <div class="p-6">
+          <!-- Tab: Upload -->
+          <div id="content-upload" class="tab-content">
+            <!-- Como usar - Cards (Collapsible) -->
+            <div class="border border-main rounded-lg mb-6 overflow-hidden">
+              <button
+                onclick="toggleCollapse('comoUsar')"
+                class="w-full p-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
+                style="background-color: #f9fafb;"
+                aria-expanded="true"
+                aria-controls="collapse-comoUsar"
+              >
+                <div class="flex items-center gap-3">
+                  <i
+                    data-lucide="help-circle"
+                    class="w-5 h-5 text-gray-700"
+                    aria-hidden="true"
+                  ></i>
+                  <span class="font-semibold text-gray-900">Como usar esta ferramenta</span>
+                </div>
+                <i
+                  data-lucide="chevron-down"
+                  id="chevron-comoUsar"
+                  class="w-5 h-5 text-gray-400 transition-transform"
+                  style="transform: rotate(0deg)"
+                  aria-hidden="true"
+                ></i>
+              </button>
+              <div id="collapse-comoUsar" class="collapsible-content active">
+                <div class="p-4 border-t border-main">
+                  <div class="flex flex-col md:flex-row items-stretch gap-2 md:gap-0">
+
+                    <!-- Card 1 - Prepare -->
+                    <div class="flex-1 border border-main rounded-lg p-5">
+                      <div class="flex items-center gap-3 mb-3">
+                        <div class="w-10 h-10 bg-blue-50 rounded-full flex items-center justify-center flex-shrink-0">
+                          <span class="text-blue-600 font-bold text-sm leading-none">01</span>
+                        </div>
+                        <span class="text-sm font-semibold text-gray-900">Prepare seu arquivo</span>
+                      </div>
+                      <p class="text-xs text-gray-600 leading-relaxed mb-3">
+                        Use arquivo CSV com as colunas obrigatórias ou baixe nosso template.
+                      </p>
+                      <button
+                        id="btnDownloadModelo"
+                        class="w-full px-3 py-2 bg-white border border-main rounded-lg text-xs font-bold hover:bg-gray-50 flex items-center justify-center gap-2 transition-colors"
+                        style="color: #4c5664;"
+                      >
+                        <i data-lucide="download" class="w-4 h-4" style="color: #4c5664; stroke-width: 2.5;"></i>
+                        Baixar modelo
+                      </button>
+                    </div>
+
+                    <!-- Seta 1→2 -->
+                    <div class="hidden md:flex items-center justify-center flex-shrink-0 text-gray-900">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="m16 7 5 5-5 5"></path></svg>
+                    </div>
+                    <div class="flex md:hidden items-center justify-center text-gray-900">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="transform: rotate(90deg);"><path d="M5 12h14"></path><path d="m16 7 5 5-5 5"></path></svg>
+                    </div>
+
+                    <!-- Card 2 - Upload -->
+                    <div class="flex-1 border border-main rounded-lg p-5">
+                      <div class="flex items-center gap-3 mb-3">
+                        <div class="w-10 h-10 bg-green-50 rounded-full flex items-center justify-center flex-shrink-0">
+                          <span class="text-green-600 font-bold text-sm leading-none">02</span>
+                        </div>
+                        <span class="text-sm font-semibold text-gray-900">Faça o upload</span>
+                      </div>
+                      <p class="text-xs text-gray-600 leading-relaxed">
+                        Arraste seu arquivo ou clique na área abaixo. O sistema verificará os dados carregados.
+                      </p>
+                    </div>
+
+                    <!-- Seta 2→3 -->
+                    <div class="hidden md:flex items-center justify-center flex-shrink-0 text-gray-900">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="m16 7 5 5-5 5"></path></svg>
+                    </div>
+                    <div class="flex md:hidden items-center justify-center text-gray-900">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="transform: rotate(90deg);"><path d="M5 12h14"></path><path d="m16 7 5 5-5 5"></path></svg>
+                    </div>
+
+                    <!-- Card 3 - Configure -->
+                    <div class="flex-1 border border-main rounded-lg p-5">
+                      <div class="flex items-center gap-3 mb-3">
+                        <div class="w-10 h-10 bg-purple-50 rounded-full flex items-center justify-center flex-shrink-0">
+                          <span class="text-purple-600 font-bold text-sm leading-none">03</span>
+                        </div>
+                        <span class="text-sm font-semibold text-gray-900">Configure as cotas</span>
+                      </div>
+                      <p class="text-xs text-gray-600 leading-relaxed">
+                        Na aba 'Configuração', ajuste percentuais de cotas e o padrão de distribuição de vagas conforme necessário.
+                      </p>
+                    </div>
+
+                    <!-- Seta 3→4 -->
+                    <div class="hidden md:flex items-center justify-center flex-shrink-0 text-gray-900">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="m16 7 5 5-5 5"></path></svg>
+                    </div>
+                    <div class="flex md:hidden items-center justify-center text-gray-900">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="transform: rotate(90deg);"><path d="M5 12h14"></path><path d="m16 7 5 5-5 5"></path></svg>
+                    </div>
+
+                    <!-- Card 4 - Resultado -->
+                    <div class="flex-1 border border-main rounded-lg p-5">
+                      <div class="flex items-center gap-3 mb-3">
+                        <div class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style="background-color: #f8eee7;">
+                          <span class="font-bold text-sm leading-none" style="color: #b45309;">04</span>
+                        </div>
+                        <span class="text-sm font-semibold text-gray-900">Visualize e exporte</span>
+                      </div>
+                      <p class="text-xs text-gray-600 leading-relaxed">
+                        Após clicar em 'Processar', confira o resultado final na aba 'Resultado' e exporte em CSV ou imprima a lista de convocação.
+                      </p>
+                    </div>
+
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Área de Upload -->
+            <div
+              id="uploadArea"
+              class="border-2 border-dashed rounded-lg p-12 text-center cursor-pointer hover:bg-gray-50 transition-all"
+              style="border-color: #949494;"
+            >
+              <i
+                data-lucide="file-up"
+                class="w-12 h-12 text-gray-400 mx-auto mb-4"
+              ></i>
+              <h3 class="text-base font-medium text-gray-900 mb-2">
+                Clique ou arraste o arquivo CSV aqui
+              </h3>
+              <p class="text-sm text-gray-500 mb-2">
+                Colunas obrigatórias: <strong>nome</strong>, <strong>classificacao_geral</strong>, <strong>classificacao_negro</strong>, <strong>classificacao_deficiente</strong>
+              </p>
+              <p class="text-xs text-gray-400">
+                Formato: CSV (vírgula ou ponto e vírgula) • Codificação: UTF-8
+              </p>
+              <input type="file" id="fileInput" accept=".csv" class="hidden" />
+            </div>
+
+            <!-- Arquivo carregado -->
+            <div
+              id="fileInfo"
+              class="hidden mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg"
+            >
+              <div class="flex items-center gap-2">
+                <i
+                  data-lucide="check-circle"
+                  class="w-5 h-5 text-blue-600 flex-shrink-0"
+                ></i>
+                <span
+                  id="fileName"
+                  class="text-sm font-medium text-blue-900"
+                ></span>
+              </div>
+            </div>
+
+            <!-- Ações -->
+            <div
+              id="uploadActions"
+              class="hidden flex flex-col sm:flex-row justify-between gap-3 mt-4"
+            >
+              <div class="flex flex-col sm:flex-row gap-3">
+                <button
+                  id="btnCheckInconsistencies"
+                  class="hidden px-6 py-2 bg-white text-amber-700 border border-amber-300 rounded-lg font-medium hover:bg-amber-50 flex items-center justify-center gap-2"
+                >
+                  <i data-lucide="alert-triangle" class="w-4 h-4"></i>
+                  <span class="btn-text">Verificar Inconsistências</span>
+                </button>
+                <button
+                  id="btnClearUpload"
+                  class="px-6 py-2 bg-white text-gray-700 border rounded-lg font-medium hover:bg-gray-50 flex items-center justify-center gap-2" style="border-color: #000000;"
+                >
+                  <i data-lucide="trash-2" class="w-4 h-4"></i>
+                  Limpar
+                </button>
+              </div>
+              <button
+                id="btnNextUpload"
+                class="px-6 py-2 bg-gray-900 text-white rounded-lg font-medium hover:bg-gray-800 flex items-center justify-center gap-2"
+              >
+                Próximo
+                <i data-lucide="arrow-right" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Tab: Configuração -->
+          <div id="content-config" class="tab-content hidden">
+            
+            <!-- Texto Explicativo -->
+            <div class="mb-6 p-4 bg-gray-50 border border-main rounded-lg">
+              <p class="text-sm text-gray-700">
+                Configure os blocos de distribuição. Cada bloco define um padrão que se repete até o limite especificado.
+              </p>
+            </div>
+            
+            <!-- Layout Master-Detail -->
+            <div class="flex flex-col lg:flex-row gap-6">
+              
+              <!-- COLUNA ESQUERDA: Lista de Blocos (Master) -->
+              <div class="lg:w-[350px] flex-shrink-0 flex flex-col">
+                
+                <!-- Cabeçalho da Lista -->
+                <div class="bg-gray-50 border border-main rounded-t-lg px-5 py-4 flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <i data-lucide="layers" class="w-5 h-5 text-gray-700"></i>
+                    <h3 class="font-semibold text-base text-gray-900">Blocos de Distribuição</h3>
+                  </div>
+                </div>
+                
+                <!-- Lista Scrollável -->
+                <div class="flex-1 overflow-y-auto bg-white border-x border-b border-main rounded-b-lg max-h-[400px] lg:max-h-[600px]">
+                  <div id="blocosListaMaster" class="p-3 space-y-2">
+                    <!-- Blocos serão renderizados aqui -->
+                  </div>
+                </div>
+                
+                <!-- Rodapé com Reset Global -->
+                <div class="mt-4">
+                  <button
+                    id="resetBlocosMaster"
+                    class="w-full px-4 py-2.5 bg-white text-gray-700 border rounded-lg text-sm font-medium hover:bg-gray-50 flex items-center justify-center gap-2 transition-colors" style="border-color: #000000;"
+                  >
+                    <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+                    Restaurar Padrão
+                  </button>
+                </div>
+                
+              </div>
+              
+              <!-- COLUNA DIREITA: Editor do Bloco (Detail) -->
+              <div class="flex-1 flex flex-col min-w-0">
+                
+                <div id="blocoEditorArea" class="flex-1 bg-white rounded-lg border border-main overflow-hidden flex flex-col">
+                  
+                  <!-- Estado Vazio (quando nenhum bloco selecionado) -->
+                  <div id="editorEstadoVazio" class="flex-1 flex items-center justify-center p-8">
+                    <div class="text-center max-w-sm">
+                      <div class="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
+                        <i data-lucide="layers" class="w-8 h-8 text-gray-400"></i>
+                      </div>
+                      <h3 class="text-lg font-semibold text-gray-900 mb-2">Nenhum bloco selecionado</h3>
+                      <p class="text-sm text-gray-500 mb-6">Selecione um bloco na lista ao lado para editar suas configurações</p>
+                      <button
+                        onclick="adicionarBloco()"
+                        class="inline-flex items-center gap-2 px-6 py-3 bg-gray-900 text-white rounded-lg font-medium hover:bg-gray-800 transition-colors"
+                      >
+                        <i data-lucide="plus" class="w-4 h-4"></i>
+                        Adicionar Primeiro Bloco
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <!-- Editor do Bloco (oculto inicialmente) -->
+                  <div id="editorBlocoConteudo" class="hidden flex-1 flex flex-col">
+                    
+                    <!-- Cabeçalho do Editor -->
+                    <div class="bg-gray-50 border-b border-main px-6 py-4">
+                      <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                          <div id="editorBlocoNumero" class="flex items-center justify-center w-10 h-10 bg-gray-900 text-white rounded-lg text-base font-bold">
+                            1
+                          </div>
+                          <div>
+                            <h3 id="editorBlocoNome" class="text-lg font-bold text-gray-900">Principal</h3>
+                            <p id="editorBlocoInfo" class="text-xs text-gray-600 mt-0.5">
+                              Até posição ∞ • 10 vagas/ciclo
+                            </p>
+                          </div>
+                        </div>
+                        
+                        <div class="flex items-center gap-2">
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <!-- Conteúdo Scrollável do Editor -->
+                    <div class="flex-1 overflow-y-auto p-6 space-y-6">
+                      
+                      <!-- Seção: Aplicação do Padrão -->
+                      <div>
+                        <div class="flex items-center gap-2 mb-3">
+                          <i data-lucide="map-pin" class="w-4 h-4 text-gray-700"></i>
+                          <label class="text-sm font-semibold text-gray-900">Aplicação do Padrão</label>
+                          <span class="tooltip-trigger cursor-help inline-flex" data-tippy-content="Define o intervalo de posições onde este padrão será aplicado">
+                            <i data-lucide="help-circle" class="w-3.5 h-3.5 text-gray-400"></i>
+                          </span>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-md">
+                          <div>
+                            <label class="block text-xs font-semibold text-gray-700 mb-2">Da posição</label>
+                            <div id="editorPosicaoInicio" class="px-3 py-2.5 border border-gray-300 rounded-lg text-sm font-semibold bg-gray-50 text-gray-900">
+                              1
+                            </div>
+                          </div>
+                          <div>
+                            <label class="block text-xs font-semibold text-gray-700 mb-2">Até a posição</label>
+                            <input
+                              type="number"
+                              id="editorPosicaoFim"
+                              min="1"
+                              placeholder="∞ (restante)"
+                              class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm placeholder:text-gray-400 "
+                            />
+                          </div>
+                        </div>
+                      </div>
+                                            
+                      <div class="h-px bg-main"></div>
+                      
+                      <!-- Seção: Padrão de Distribuição -->
+                      <div>
+                        <div class="flex items-center justify-between mb-3">
+                          <div class="flex items-center gap-2">
+                            <i data-lucide="layout-grid" class="w-4 h-4 text-gray-700"></i>
+                            <label class="text-sm font-semibold text-gray-900">Padrão de Distribuição</label>
+                            <span class="tooltip-trigger cursor-help inline-flex" data-tippy-content="Sequência de vagas que se repete ciclicamente">
+                              <i data-lucide="help-circle" class="w-3.5 h-3.5 text-gray-400"></i>
+                            </span>
+                          </div>
+                          <button
+                            id="editorEditarPadrao"
+                            class="px-3 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 bg-white hover:bg-gray-50 rounded-lg transition-all flex items-center gap-2 border" style="border-color: #000000;"
+                          >
+                            <i data-lucide="edit-2" class="w-4 h-4"></i>
+                            <span class="hidden sm:inline">Editar Padrão</span>
+                          </button>
+                        </div>
+                        
+                        <div class="p-4 bg-gray-50 rounded-lg border border-main">
+                          <div id="editorPreviewPadrao" class="flex flex-wrap gap-2 min-h-[60px] items-center">
+                            <!-- Preview do padrão -->
+                          </div>
+                        </div>
+                      </div>
+                      
+                    </div>
+                    
+                  </div>
+                  
+                </div>
+                
+              </div>
+              
+            </div>
+            
+            <!-- Botões de Navegação -->
+            <div class="flex flex-col sm:flex-row justify-between gap-3 mt-6">
+              <button
+                onclick="switchTab('upload')"
+                class="px-6 py-2 bg-white text-gray-700 border rounded-lg font-medium hover:bg-gray-50 flex items-center justify-center gap-2 transition-colors" style="border-color: #000000;"
+              >
+                <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                Voltar
+              </button>
+              <button
+                id="processBtn"
+                class="px-6 py-2 bg-gray-900 text-white rounded-lg font-medium hover:bg-gray-800 flex items-center justify-center gap-2 transition-colors"
+              >
+                <i data-lucide="play" class="w-4 h-4"></i>
+                Processar
+              </button>
+            </div>
+            
+          </div>          
+
+          <!-- Tab: Resultado -->
+          <div id="content-resultado" class="tab-content hidden">
+            <div
+              id="statsContainer"
+              class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6"
+            ></div>
+            <div
+              class="bg-white rounded-lg border border-main overflow-hidden"
+            >
+              <div
+                class="px-6 py-4 border-b border-main flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3"
+              >
+                <div class="flex items-center gap-2">
+                  <i data-lucide="table" class="w-5 h-5 text-gray-700"></i>
+                  <h3 class="text-base font-semibold text-gray-900">
+                    Resultado da Distribuição
+                  </h3>
+                </div>
+                <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                  <button
+                    onclick="downloadResultado()"
+                    class="bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-800 flex items-center justify-center gap-2"
+                  >
+                    <i data-lucide="download" class="w-4 h-4"></i>
+                    Baixar CSV
+                  </button>
+                  <button
+                    onclick="imprimirResultado()"
+                    class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 flex items-center justify-center gap-2"
+                  >
+                    <i data-lucide="printer" class="w-4 h-4"></i>
+                    Imprimir
+                  </button>
+                </div>
+              </div>
+              <!-- Cabeçalho de Impressão (oculto na tela) -->
+              <div id="printHeader" class="print-only">
+                <div class="print-header-content">
+                  <h1 class="print-title">Organizador de Convocação</h1>
+                  <p class="print-subtitle">Distribuição de vagas por cotas</p>
+                  <div class="print-info">
+                    <span id="printFileName"></span>
+                    <span id="printDate"></span>
+                  </div>
+                </div>
+
+                <!-- Legenda -->
+                <div class="print-legend">
+                  <h2 class="print-section-title">Tipos de Vaga</h2>
+                  <div class="print-legend-grid">
+                    <div class="print-legend-card print-legend-ac">
+                      <div class="print-legend-badge">AC</div>
+                      <span class="print-legend-label">Ampla Concorrência</span>
+                    </div>
+                    <div class="print-legend-card print-legend-pn">
+                      <div class="print-legend-badge">PN</div>
+                      <span class="print-legend-label">Pessoa Negra</span>
+                    </div>
+                    <div class="print-legend-card print-legend-pcd">
+                      <div class="print-legend-badge">PcD</div>
+                      <span class="print-legend-label">Pessoa com Deficiência</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Estatísticas -->
+                <div class="print-stats">
+                  <h2 class="print-section-title">Resumo da Distribuição</h2>
+                  <div class="print-stats-grid" id="printStatsGrid"></div>
+                </div>
+              </div>
+
+              <div class="overflow-x-auto max-h-[600px]">
+                <table id="resultTable" class="w-full">
+                  <thead class="bg-gray-50 sticky top-0" style="box-shadow: 0 1px 0 0 #949494;">
+                    <tr>
+                      <th
+                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase"
+                      >
+                        Ordem de Chamada
+                      </th>
+                      <th
+                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase"
+                      >
+                        Nome do Candidato(a)
+                      </th>
+                      <th
+                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase"
+                      >
+                        Classificação Geral
+                      </th>
+                      <th
+                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase"
+                      >
+                        Tipo de Vaga
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody class="bg-white divide-y divide-gray-200"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Botão de Navegação -->
+            <div class="flex justify-start mt-6">
+              <button
+                onclick="switchTab('config')"
+                class="px-6 py-2 bg-white text-gray-700 border rounded-lg font-medium hover:bg-gray-50 flex items-center justify-center gap-2 transition-colors" style="border-color: #000000;"
+              >
+                <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                Voltar
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+    <script>
+      // ============================================
+      // CONSTANTES
+      // ============================================
+
+      const CONFIG = {
+        TIPOS_COTAS: {
+          AC: {
+            id: "AC",
+            nome: "Ampla Concorrência",
+            nomeAbreviado: "Ampla",
+            tooltip: "Ampla Concorrência",
+            descricao: "Vagas de ampla concorrência, sem restrição de cotas",
+            cor: {
+              bg: "bg-blue-100",
+              text: "text-blue-700",
+              border: "border-blue-300",
+              badge: "bg-blue-100 text-blue-700",
+              icon: "text-blue-500",
+            },
+          },
+          PN: {
+            id: "PN",
+            nome: "Pessoa Negra",
+            nomeAbreviado: "Negro",
+            tooltip: "Pessoa Negra",
+            descricao: "Vagas reservadas para candidatos autodeclarados negros (pretos e pardos)",
+            cor: {
+              bg: "bg-amber-100",
+              text: "text-amber-700",
+              border: "border-amber-300",
+              badge: "bg-amber-100 text-amber-700",
+              icon: "text-amber-500",
+            },
+          },
+          PcD: {
+            id: "PcD",
+            nome: "Pessoa com Deficiência",
+            nomeAbreviado: "PcD",
+            tooltip: "Pessoa com Deficiência",
+            descricao: "Vagas reservadas para pessoas com deficiência",
+            cor: {
+              bg: "bg-purple-100",
+              text: "text-purple-700",
+              border: "border-purple-300",
+              badge: "bg-purple-100 text-purple-700",
+              icon: "text-purple-500",
+            },
+          },
+        },
+
+        PERCENTUAIS_PADRAO: {
+          AC: 60,
+          PN: 30,
+          PcD: 10,
+        },
+
+        BLOCOS_DISTRIBUICAO_DEFAULT: [
+          {
+            id: 1,
+            quantidadeTotal: 10,
+            percentuais: { AC: 60, PN: 30, PcD: 10 },
+            padrao: [
+              { tipo: 'AC', repeticoes: 2 },
+              { tipo: 'PN', repeticoes: 1 },
+              { tipo: 'AC', repeticoes: 1 },
+              { tipo: 'PcD', repeticoes: 1 },
+              { tipo: 'PN', repeticoes: 1 },
+              { tipo: 'AC', repeticoes: 2 },
+              { tipo: 'PN', repeticoes: 1 },
+              { tipo: 'AC', repeticoes: 1 },
+            ]
+          },
+          {
+            id: 2,
+            quantidadeTotal: null,
+            percentuais: { AC: 60, PN: 30, PcD: 10 },
+            padrao: [
+              { tipo: 'AC', repeticoes: 1 },
+              { tipo: 'PN', repeticoes: 1 },
+              { tipo: 'AC', repeticoes: 2 },
+              { tipo: 'PcD', repeticoes: 1 },
+              { tipo: 'PN', repeticoes: 1 },
+              { tipo: 'AC', repeticoes: 2 },
+              { tipo: 'PN', repeticoes: 1 },
+              { tipo: 'AC', repeticoes: 1 },
+            ]
+          },
+        ],
+
+        COLUNAS_CSV: {
+          NOME: "NOME",
+          CLASSIFICACAO_GERAL: "CLASSIFICACAO_GERAL",
+          CLASSIFICACAO_DEFICIENTE: "CLASSIFICACAO_DEFICIENTE",
+          CLASSIFICACAO_NEGRO: "CLASSIFICACAO_NEGRO",
+        },
+
+        VALIDACAO: {
+          PERCENTUAL_TOTAL_ESPERADO: 100,
+          DIFERENCA_PADRAO_AVISO: 2,
+          DIFERENCA_PADRAO_CRITICO: 5,
+          MIN_VAGAS_PADRAO: 1,
+        },
+
+        MENSAGENS: {
+          SUCESSO: {
+            ARQUIVO_CARREGADO: (qtd) =>
+              `Arquivo validado com sucesso! ${qtd} candidatos carregados.`,
+            DADOS_LIMPOS: "Dados limpos com sucesso.",
+            PROCESSAMENTO_CONCLUIDO: (qtd) =>
+              `Reclassificação concluída! ${qtd} candidatos processados.`,
+          },
+          ERRO: {
+            ARQUIVO_INVALIDO: "Por favor, selecione um arquivo CSV válido.",
+            COLUNAS_OBRIGATORIAS:
+              "Colunas obrigatórias não encontradas. Necessárias: nome, classificacao_geral, classificacao_deficiente, classificacao_negro",
+            NENHUM_CANDIDATO: "Nenhum candidato válido encontrado no arquivo.",
+            NENHUM_CANDIDATO_PROCESSAR: "Nenhum candidato para processar.",
+            PERCENTUAIS_INVALIDOS: "Os percentuais devem somar 100%.",
+            MIN_VAGAS: "Deve haver pelo menos 1 vaga no padrão.",
+            PROCESSAMENTO: (msg) => `Erro ao processar arquivo: ${msg}`,
+            LEITURA: "Erro ao ler o arquivo.",
+          },
+          AVISO: {
+            ARQUIVO_COM_ERROS: (qtdCandidatos, qtdErros) =>
+              `Arquivo carregado com ${qtdCandidatos} candidatos. ${qtdErros} erro(s) crítico(s) detectado(s) - corrija antes de prosseguir.`,
+            ARQUIVO_COM_AVISOS: (qtdCandidatos, qtdAvisos) =>
+              `Arquivo carregado com ${qtdCandidatos} candidatos. ${qtdAvisos} aviso(s) detectado(s).`,
+          },
+          CONFIRMACAO: {
+            LIMPAR_DADOS: {
+              titulo: "Limpar Dados",
+              mensagem:
+                "Tem certeza que deseja limpar todos os dados carregados?",
+            },
+            SUBSTITUIR_ARQUIVO: {
+              titulo: "Substituir Dados",
+              mensagem: (nomeArquivo) =>
+                `Já existe um arquivo carregado (${nomeArquivo}).\n\nDeseja substituir pelos dados do novo arquivo?`,
+            },
+            NOVO_ARQUIVO: {
+              titulo: "Novo Arquivo",
+              mensagem:
+                "Tem certeza que deseja descartar os resultados atuais e carregar um novo arquivo?",
+            },
+            PADRAO_DISTANTE: {
+              titulo: "Padrão Distante das Metas",
+              mensagem: (mensagemValidacao) =>
+                `${mensagemValidacao}\n\nDeseja continuar mesmo assim?`,
+            },
+          },
+        },
+
+        UI: {
+          TOAST_DURATION: 5000,
+          MODAL_TRANSITION_DELAY: 200,
+          PROCESSAMENTO_DELAY: 100,
+          FOCUS_DELAY: 100,
+        },
+
+        LABELS: {
+          SEM_NOME: "(sem nome)",
+          NOME_NAO_INFORMADO: "Nome não informado",
+          CLASSIFICACAO_AUSENTE: "-",
+        },
+
+        TIPOS_INCONSISTENCIAS: {
+          ERROS_CRITICOS: {
+            COTA_SEM_GERAL: {
+              titulo: "Candidatos com cota mas sem classificação geral",
+              id: "cota-sem-geral",
+            },
+            LISTA_COTA_MAIOR: {
+              titulo: "Lista de cotas maior que lista geral",
+              id: "cota-maior",
+            },
+            CLASSIFICACOES_INVERTIDAS: {
+              titulo: "Classificações invertidas",
+              id: "invertidas",
+            },
+            INVERSOES_ORDEM: {
+              titulo: "Inversões de ordem relativa",
+              id: "inversoes-ordem",
+            },
+          },
+          AVISOS: {
+            CANDIDATOS_SEM_NOME: {
+              titulo: "Candidatos sem nome",
+              id: "sem-nome",
+            },
+            LISTA_GERAL: {
+              titulo: "Lista Geral",
+              id: "geral",
+            },
+            LISTA_PN: {
+              titulo: "Lista PN",
+              id: "pn",
+            },
+            LISTA_PCD: {
+              titulo: "Lista PcD",
+              id: "pcd",
+            },
+          },
+        },
+      };
+
+      const getCotaConfig = (tipoCota) => CONFIG.TIPOS_COTAS[tipoCota] || null;
+      const getCotasDisponiveis = () => Object.keys(CONFIG.TIPOS_COTAS);
+      const isCotaValida = (tipoCota) =>
+        CONFIG.TIPOS_COTAS.hasOwnProperty(tipoCota);
+
+      // ============================================
+      // SCROLL MANAGEMENT
+      // ============================================
+
+      const ScrollManager = {
+        disable() {
+          document.body.style.overflow = 'hidden';
+        },
+        
+        enable() {
+          document.body.style.overflow = '';
+        }
+      };
+
+
+      // ============================================
+      // HELPERS DE BLOCOS
+      // ============================================
+
+      const BlocoHelper = {
+        criarBloco(id = null) {
+          return {
+            id: id || Date.now(),
+            quantidadeTotal: null,
+            percentuais: { AC: 60, PN: 30, PcD: 10 },
+            padrao: [
+              { tipo: "AC", repeticoes: 2 },
+              { tipo: "PN", repeticoes: 1 },
+              { tipo: "AC", repeticoes: 1 },
+            ]
+          };
+        },
+
+        contarVagasBloco(bloco) {
+          return bloco.padrao.reduce((sum, p) => sum + p.repeticoes, 0);
+        },
+
+        validarBloco(bloco) {
+          if (!bloco.padrao || bloco.padrao.length === 0) {
+            return { 
+              valido: false, 
+              mensagem: "O padrão de distribuição está vazio. Clique em 'Editar Padrão' para configurar." 
+            };
+          }
+          
+          const totalVagas = this.contarVagasBloco(bloco);
+          if (totalVagas < CONFIG.VALIDACAO.MIN_VAGAS_PADRAO) {
+            return { valido: false, mensagem: "Bloco deve ter pelo menos 1 vaga" };
+          }
+
+          return { valido: true };
+        },
+
+        calcularLimites(blocos) {
+          const limites = [];
+          let posicaoAtual = 1;
+
+          blocos.forEach((bloco, index) => {
+            const inicio = posicaoAtual;
+            const fim = bloco.quantidadeTotal ? 
+              Math.min(posicaoAtual + bloco.quantidadeTotal - 1, Infinity) : 
+              Infinity;
+            
+            limites.push({ bloco: bloco.id, inicio, fim });
+            posicaoAtual = fim === Infinity ? Infinity : fim + 1;
+          });
+
+          return limites;
+        },
+
+        calcularRangeBloco(bloco, blocoIndex, blocos) {
+          let inicio = 1;
+          for (let i = 0; i < blocoIndex; i++) {
+            if (blocos[i].quantidadeTotal) {
+              inicio = blocos[i].quantidadeTotal + 1;
+            }
+          }
+          const fim = bloco.quantidadeTotal;
+          if (fim == null) {
+            return inicio === 1 ? "Todas as posições" : `Posições ${inicio} em diante`;
+          }
+          return inicio === fim ? `Posição ${inicio}` : `Posições ${inicio} a ${fim}`;
+        },
+
+        validarEstruturaCompleta(blocos) {
+          const erros = [];
+          const avisos = [];
+          
+          let posicaoEsperada = 1;
+          
+          blocos.forEach((bloco, index) => {
+            const numeroBloco = index + 1;
+            
+            let inicio = 1;
+            for (let i = 0; i < index; i++) {
+              if (blocos[i].quantidadeTotal) {
+                inicio = blocos[i].quantidadeTotal + 1;
+              }
+            }
+            
+            const fim = bloco.quantidadeTotal;
+            const range = this.calcularRangeBloco(bloco, index, blocos);
+            
+            if (index === 0 && inicio !== 1) {
+              erros.push(`Bloco 1: Deve começar na posição 1`);
+            }
+            
+            if (fim && fim < inicio) {
+              erros.push(
+                `Bloco ${numeroBloco} (${range}): A posição limite (${fim}) não pode ser inferior à posição inicial (${inicio}).`
+              );
+            }
+            
+            if (inicio > posicaoEsperada) {
+              erros.push(
+                `Bloco ${numeroBloco}: Há um intervalo sem cobertura entre a posição ${posicaoEsperada} e ${inicio - 1}. Ajuste o limite do bloco anterior.`
+              );
+            }
+            
+            if (!fim && index < blocos.length - 1) {
+              erros.push(
+                `Bloco ${numeroBloco} (${range}): Defina uma posição limite para esse bloco ou remova o(s) bloco(s) seguinte(s)!`
+              );
+            }
+            
+            if (fim) {
+              const tamanhoPadrao = this.contarVagasBloco(bloco);
+              const tamanhoRange = fim - inicio + 1;
+              
+              if (tamanhoRange < tamanhoPadrao) {
+                avisos.push(
+                  `Bloco ${numeroBloco} (${range}): O padrão tem ${tamanhoPadrao} vagas, mas o bloco cobre apenas ${tamanhoRange} posição(ões). O padrão não será completado.`
+                );
+              }
+            }
+            
+            if (fim) {
+              posicaoEsperada = fim + 1;
+            }
+          });
+          
+          return {
+            valido: erros.length === 0,
+            erros,
+            avisos
+          };
+        }
+      };
+
+
+      // ============================================
+      // VALIDATION MANAGER
+      // ============================================
+
+      const ValidationManager = {
+
+        validarArquivoCSV(fileName) {
+          return fileName.endsWith(".csv");
+        },
+
+        detectarColunas(cabecalho) {
+          const upper = cabecalho.map((c) =>
+            c.toUpperCase().trim().replace(/\s+/g, "_"),
+          );
+
+          let nome = cabecalho.find(
+            (c, i) => upper[i] === CONFIG.COLUNAS_CSV.NOME,
+          );
+          let geral = cabecalho.find(
+            (c, i) => upper[i] === CONFIG.COLUNAS_CSV.CLASSIFICACAO_GERAL,
+          );
+          let pcd = cabecalho.find(
+            (c, i) =>
+              upper[i] === CONFIG.COLUNAS_CSV.CLASSIFICACAO_DEFICIENTE,
+          );
+          let pn = cabecalho.find(
+            (c, i) => upper[i] === CONFIG.COLUNAS_CSV.CLASSIFICACAO_NEGRO,
+          );
+
+          if (!nome || !geral || !pcd || !pn) return null;
+          return { nome, geral, pcd, pn };
+        },
+
+        validarLinhaCandidato(candidato) {
+          const temNome = candidato.nome.trim() !== "";
+          const temGeral = isFinite(candidato.geral);
+          const temPN = isFinite(candidato.pn);
+          const temPcD = isFinite(candidato.pcd);
+
+          return temNome || temGeral || temPN || temPcD;
+        },
+
+        validarPercentuais(percentuais) {
+          const total = Object.values(percentuais).reduce(
+            (sum, val) => sum + val,
+            0,
+          );
+          
+          const totalArredondado = parseFloat(total.toFixed(1));
+          
+          const valido = totalArredondado === CONFIG.VALIDACAO.PERCENTUAL_TOTAL_ESPERADO;
+
+          return {
+            valido,
+            total: totalArredondado.toFixed(1),
+          };
+        },
+
+        validarPadraoDistribuicao(padraoAtual, percentuais) {
+          const totalVagas = padraoAtual.reduce(
+            (sum, p) => sum + p.repeticoes,
+            0,
+          );
+
+          const contadores = {};
+          const percentuaisAtuais = {};
+          const diferencas = {};
+
+          getCotasDisponiveis().forEach((tipo) => {
+            contadores[tipo] = padraoAtual
+              .filter((p) => p.tipo === tipo)
+              .reduce((sum, p) => sum + p.repeticoes, 0);
+            percentuaisAtuais[tipo] = (contadores[tipo] / totalVagas) * 100;
+            diferencas[tipo] = Math.abs(
+              percentuaisAtuais[tipo] - percentuais[tipo],
+            );
+          });
+
+          const maxDiff = Math.max(...Object.values(diferencas));
+
+          if (maxDiff >= CONFIG.VALIDACAO.DIFERENCA_PADRAO_CRITICO) {
+            let problemas = [];
+            getCotasDisponiveis().forEach((tipo) => {
+              if (
+                diferencas[tipo] >= CONFIG.VALIDACAO.DIFERENCA_PADRAO_CRITICO
+              ) {
+                const cotaConfig = getCotaConfig(tipo);
+                problemas.push(
+                  `${cotaConfig.nomeAbreviado}: ${percentuaisAtuais[tipo].toFixed(1)}% (meta: ${percentuais[tipo]}%)`,
+                );
+              }
+            });
+
+            return {
+              valido: false,
+              critico: true,
+              mensagem: `Padrão de distribuição muito distante das metas!\n\n${problemas.join("\n")}\n\nAjuste o padrão antes de processar.`,
+            };
+          }
+
+          if (maxDiff >= CONFIG.VALIDACAO.DIFERENCA_PADRAO_AVISO) {
+            let problemas = [];
+            getCotasDisponiveis().forEach((tipo) => {
+              if (diferencas[tipo] >= CONFIG.VALIDACAO.DIFERENCA_PADRAO_AVISO) {
+                const cotaConfig = getCotaConfig(tipo);
+                problemas.push(
+                  `${cotaConfig.nomeAbreviado}: ${percentuaisAtuais[tipo].toFixed(1)}% (meta: ${percentuais[tipo]}%)`,
+                );
+              }
+            });
+
+            return {
+              valido: false,
+              critico: false,
+              mensagem: `O padrão de distribuição está distante das metas configuradas:\n\n${problemas.join("\n")}`,
+            };
+          }
+
+          return { valido: true };
+        },
+
+        validarBlocos(blocos) {
+          if (!blocos || blocos.length === 0) {
+            return {
+              valido: false,
+              mensagem: 'Deve haver pelo menos um bloco configurado'
+            };
+          }
+
+          for (let i = 0; i < blocos.length; i++) {
+            const bloco = blocos[i];
+            const validacao = BlocoHelper.validarBloco(bloco);
+            
+            if (!validacao.valido) {
+              const numeroBloco = i + 1;
+              const range = BlocoHelper.calcularRangeBloco(bloco, i, blocos);
+              return {
+                valido: false,
+                mensagem: `Bloco ${numeroBloco} (${range}): ${validacao.mensagem}`
+              };
+            }
+          }
+
+          const validacaoEstrutura = BlocoHelper.validarEstruturaCompleta(blocos);
+          
+          if (!validacaoEstrutura.valido) {
+            const mensagem = validacaoEstrutura.erros.join('\n\n');
+            return {
+              valido: false,
+              mensagem
+            };
+          }
+          
+          if (validacaoEstrutura.avisos.length > 0) {
+            return {
+              valido: true,
+              avisos: validacaoEstrutura.avisos
+            };
+          }
+
+          return { valido: true };
+        },
+
+        validarPadraoBlocos(blocos) {
+          const problemasGlobais = [];
+
+          blocos.forEach((bloco, index) => {
+            const numeroBloco = index + 1;
+            const totalVagas = bloco.padrao.reduce((sum, p) => sum + p.repeticoes, 0);
+            
+            const contadores = {};
+            const percentuaisAtuais = {};
+            const diferencas = {};
+            
+            getCotasDisponiveis().forEach(tipo => {
+              contadores[tipo] = bloco.padrao
+                .filter(p => p.tipo === tipo)
+                .reduce((sum, p) => sum + p.repeticoes, 0);
+              percentuaisAtuais[tipo] = (contadores[tipo] / totalVagas) * 100;
+              diferencas[tipo] = Math.abs(percentuaisAtuais[tipo] - bloco.percentuais[tipo]);
+            });
+
+            const maxDiff = Math.max(...Object.values(diferencas));
+
+            const descricaoBloco = BlocoHelper.calcularRangeBloco(bloco, index, blocos);
+
+            if (maxDiff >= CONFIG.VALIDACAO.DIFERENCA_PADRAO_CRITICO) {
+              let problemas = [];
+              getCotasDisponiveis().forEach(tipo => {
+                if (diferencas[tipo] >= CONFIG.VALIDACAO.DIFERENCA_PADRAO_CRITICO) {
+                  const cotaConfig = getCotaConfig(tipo);
+                  problemas.push(
+                    `  ${cotaConfig.nomeAbreviado}: ${percentuaisAtuais[tipo].toFixed(1)}% (meta: ${bloco.percentuais[tipo]}%)`
+                  );
+                }
+              });
+
+              problemasGlobais.push({
+                numeroBloco: numeroBloco,
+                nomeBloco: descricaoBloco,
+                critico: true,
+                problemas: problemas
+              });
+            }
+            else if (maxDiff >= CONFIG.VALIDACAO.DIFERENCA_PADRAO_AVISO) {
+              let problemas = [];
+              getCotasDisponiveis().forEach(tipo => {
+                if (diferencas[tipo] >= CONFIG.VALIDACAO.DIFERENCA_PADRAO_AVISO) {
+                  const cotaConfig = getCotaConfig(tipo);
+                  problemas.push(
+                    `  ${cotaConfig.nomeAbreviado}: ${percentuaisAtuais[tipo].toFixed(1)}% (meta: ${bloco.percentuais[tipo]}%)`
+                  );
+                }
+              });
+
+              problemasGlobais.push({
+                numeroBloco: numeroBloco,
+                nomeBloco: descricaoBloco,
+                critico: false,
+                problemas: problemas
+              });
+            }
+          });
+
+          if (problemasGlobais.length === 0) {
+            return { valido: true };
+          }
+
+          const temCriticos = problemasGlobais.some(p => p.critico);
+
+          let mensagem = temCriticos ? 
+            'Padrão de um ou mais blocos muito distante das metas!\n\n' :
+            'Padrão de um ou mais blocos está distante das metas configuradas:\n\n';
+
+          problemasGlobais.forEach(item => {
+              mensagem += `Bloco ${item.numeroBloco} (${item.nomeBloco}):\n${item.problemas.join('\n')}\n\n`;
+          });
+
+          if (temCriticos) {
+            mensagem += 'Ajuste os padrões antes de processar.';
+          }
+
+          return {
+            valido: false,
+            critico: temCriticos,
+            mensagem: mensagem.trim()
+          };
+        },
+
+        verificarInconsistencias(candidatos) {
+          const candidatosValidos = candidatos
+            .filter((c) => isFinite(c.geral))
+            .sort((a, b) => a.geral - b.geral);
+
+          // ERROS CRÍTICOS
+          const candidatosComCotaSemGeral =
+            this._verificarCotaSemGeral(candidatos);
+          const listaCotaMaiorQueGeral = this._verificarListaCotaMaior(
+            candidatos,
+            candidatosValidos,
+          );
+          const classificacoesInvertidas =
+            this._verificarClassificacoesInvertidas(candidatos);
+          const inversoesOrdemPN = this._verificarOrdemRelativa(
+            candidatos,
+            "PN",
+          );
+          const inversoesOrdemPcD = this._verificarOrdemRelativa(
+            candidatos,
+            "PcD",
+          );
+
+          // AVISOS
+          const candidatosSemNome =
+            this._verificarCandidatosSemNome(candidatos);
+          const problemasGeral = this._verificarDuplicatasEAusentes(
+            candidatosValidos,
+            "geral",
+          );
+          const problemasPN = this._verificarDuplicatasEAusentes(
+            candidatos
+              .filter((c) => isFinite(c.pn))
+              .sort((a, b) => a.pn - b.pn),
+            "pn",
+          );
+          const problemasPcD = this._verificarDuplicatasEAusentes(
+            candidatos
+              .filter((c) => isFinite(c.pcd))
+              .sort((a, b) => a.pcd - b.pcd),
+            "pcd",
+          );
+
+          return {
+            errosCriticos: {
+              candidatosComCotaSemGeral,
+              listaCotaMaiorQueGeral,
+              classificacoesInvertidas,
+              inversoesOrdemPN,
+              inversoesOrdemPcD,
+            },
+            avisos: {
+              candidatosSemNome,
+              geral: problemasGeral,
+              pn: problemasPN,
+              pcd: problemasPcD,
+            },
+          };
+        },
+
+        contarErrosCriticos(inconsistencias) {
+          return (
+            inconsistencias.errosCriticos.candidatosComCotaSemGeral.length +
+            inconsistencias.errosCriticos.listaCotaMaiorQueGeral.length +
+            inconsistencias.errosCriticos.classificacoesInvertidas.length +
+            inconsistencias.errosCriticos.inversoesOrdemPN.length +
+            inconsistencias.errosCriticos.inversoesOrdemPcD.length
+          );
+        },
+
+        contarAvisos(inconsistencias) {
+          return (
+            inconsistencias.avisos.candidatosSemNome.length +
+            new Set(
+              inconsistencias.avisos.geral.duplicatas.map((d) => d.numero),
+            ).size +
+            inconsistencias.avisos.geral.numerosAusentes.length +
+            new Set(inconsistencias.avisos.pn.duplicatas.map((d) => d.numero))
+              .size +
+            inconsistencias.avisos.pn.numerosAusentes.length +
+            new Set(inconsistencias.avisos.pcd.duplicatas.map((d) => d.numero))
+              .size +
+            inconsistencias.avisos.pcd.numerosAusentes.length
+          );
+        },
+
+        // ========== MÉTODOS PRIVADOS ==========
+
+        _verificarCotaSemGeral(candidatos) {
+          const resultado = [];
+          candidatos.forEach((candidato, index) => {
+            const temPN = isFinite(candidato.pn);
+            const temPcD = isFinite(candidato.pcd);
+            const temGeral = isFinite(candidato.geral);
+
+            if ((temPN || temPcD) && !temGeral) {
+              resultado.push({
+                linha: index + 2,
+                nome: candidato.nome || CONFIG.LABELS.SEM_NOME,
+                pn: temPN ? candidato.pn : CONFIG.LABELS.CLASSIFICACAO_AUSENTE,
+                pcd: temPcD
+                  ? candidato.pcd
+                  : CONFIG.LABELS.CLASSIFICACAO_AUSENTE,
+              });
+            }
+          });
+          return resultado;
+        },
+
+        _verificarListaCotaMaior(candidatos, candidatosValidos) {
+          const resultado = [];
+          const qtdGeral = candidatosValidos.length;
+          const qtdPN = candidatos.filter((c) => isFinite(c.pn)).length;
+          const qtdPcD = candidatos.filter((c) => isFinite(c.pcd)).length;
+
+          if (qtdPN > qtdGeral) {
+            resultado.push({
+              tipo: "PN",
+              qtdCota: qtdPN,
+              qtdGeral: qtdGeral,
+              diferenca: qtdPN - qtdGeral,
+            });
+          }
+
+          if (qtdPcD > qtdGeral) {
+            resultado.push({
+              tipo: "PcD",
+              qtdCota: qtdPcD,
+              qtdGeral: qtdGeral,
+              diferenca: qtdPcD - qtdGeral,
+            });
+          }
+
+          return resultado;
+        },
+
+        _verificarClassificacoesInvertidas(candidatos) {
+          const resultado = [];
+          candidatos.forEach((candidato, index) => {
+            const problemas = [];
+
+            if (isFinite(candidato.pn) && isFinite(candidato.geral)) {
+              if (candidato.pn > candidato.geral) {
+                problemas.push({
+                  tipo: "PN",
+                  geralPos: candidato.geral,
+                  cotaPos: candidato.pn,
+                  diferenca: candidato.pn - candidato.geral,
+                });
+              }
+            }
+
+            if (isFinite(candidato.pcd) && isFinite(candidato.geral)) {
+              if (candidato.pcd > candidato.geral) {
+                problemas.push({
+                  tipo: "PcD",
+                  geralPos: candidato.geral,
+                  cotaPos: candidato.pcd,
+                  diferenca: candidato.pcd - candidato.geral,
+                });
+              }
+            }
+
+            if (problemas.length > 0) {
+              resultado.push({
+                linha: index + 2,
+                candidato: candidato,
+                problemas: problemas,
+              });
+            }
+          });
+          return resultado;
+        },
+
+        _verificarOrdemRelativa(candidatos, tipoCota) {
+          const candidatosCota = candidatos
+            .filter(
+              (c) => isFinite(c.geral) && isFinite(c[tipoCota.toLowerCase()]),
+            )
+            .sort((a, b) => a.geral - b.geral);
+
+          const inversoes = [];
+
+          for (let i = 0; i < candidatosCota.length - 1; i++) {
+            const atual = candidatosCota[i];
+            const proximo = candidatosCota[i + 1];
+            const cotaAtual = tipoCota === "PN" ? atual.pn : atual.pcd;
+            const cotaProximo = tipoCota === "PN" ? proximo.pn : proximo.pcd;
+
+            if (cotaAtual > cotaProximo) {
+              inversoes.push({
+                candidato1: {
+                  linha: candidatos.indexOf(atual) + 2,
+                  nome: atual.nome || CONFIG.LABELS.SEM_NOME,
+                  geral: atual.geral,
+                  cota: cotaAtual,
+                },
+                candidato2: {
+                  linha: candidatos.indexOf(proximo) + 2,
+                  nome: proximo.nome || CONFIG.LABELS.SEM_NOME,
+                  geral: proximo.geral,
+                  cota: cotaProximo,
+                },
+                tipo: tipoCota,
+              });
+            }
+          }
+
+          return inversoes;
+        },
+
+        _verificarCandidatosSemNome(candidatos) {
+          const resultado = [];
+          candidatos.forEach((candidato, index) => {
+            if (!candidato.nome || candidato.nome.trim() === "") {
+              resultado.push({
+                linha: index + 2,
+                geral: isFinite(candidato.geral)
+                  ? candidato.geral
+                  : CONFIG.LABELS.CLASSIFICACAO_AUSENTE,
+                pn: isFinite(candidato.pn)
+                  ? candidato.pn
+                  : CONFIG.LABELS.CLASSIFICACAO_AUSENTE,
+                pcd: isFinite(candidato.pcd)
+                  ? candidato.pcd
+                  : CONFIG.LABELS.CLASSIFICACAO_AUSENTE,
+              });
+            }
+          });
+          return resultado;
+        },
+
+        _verificarDuplicatasEAusentes(candidatosOrdenados, campo) {
+          const duplicatas = [];
+          const numerosPresentes = new Set();
+
+          candidatosOrdenados.forEach((c, i) => {
+            const valor = c[campo];
+            numerosPresentes.add(valor);
+            if (i > 0 && valor === candidatosOrdenados[i - 1][campo]) {
+              duplicatas.push({ numero: valor, candidato: c });
+            }
+          });
+
+          const maiorNumero =
+            candidatosOrdenados.length > 0
+              ? Math.max(...candidatosOrdenados.map((c) => c[campo]))
+              : 0;
+
+          const numerosAusentes = [];
+          for (let i = 1; i <= maiorNumero; i++) {
+            if (!numerosPresentes.has(i)) numerosAusentes.push(i);
+          }
+
+          return {
+            duplicatas,
+            numerosAusentes,
+          };
+        },
+      };
+
+      // ============================================
+      // UI MANAGER
+      // ============================================
+
+      const UIManager = {
+        // ========== TABS ==========
+
+        tabs: {
+          enabled: { upload: true, config: false, resultado: false },
+
+          switch(tabName) {
+            if (!this.enabled[tabName]) return;
+
+            document
+              .querySelectorAll(".tab-content")
+              .forEach((c) => c.classList.add("hidden"));
+            document.querySelectorAll(".tab-button").forEach((b) => {
+              b.classList.remove(
+                "tab-active",
+                "border-blue-500",
+                "text-blue-600",
+              );
+              b.classList.add("border-transparent");
+            });
+
+            document
+              .getElementById(`content-${tabName}`)
+              .classList.remove("hidden");
+            const btn = document.getElementById(`tab-${tabName}`);
+            btn.classList.remove("border-transparent");
+            btn.classList.add("tab-active", "border-blue-500", "text-blue-600");
+            lucide.createIcons();
+          },
+
+          enable(tabName) {
+            this.enabled[tabName] = true;
+            document
+              .getElementById(`tab-${tabName}`)
+              .classList.remove("tab-disabled");
+            initTabTooltips();
+          },
+
+          disable(tabName) {
+            this.enabled[tabName] = false;
+            document
+              .getElementById(`tab-${tabName}`)
+              .classList.add("tab-disabled");
+            initTabTooltips();
+          },
+
+          reset() {
+            this.enabled = { upload: true, config: false, resultado: false };
+            document.querySelectorAll(".tab-button").forEach((btn) => {
+              if (btn.id !== "tab-upload") btn.classList.add("tab-disabled");
+            });
+            initTabTooltips();
+          },
+        },
+
+        // ========== LOADING ==========
+
+        loading: {
+          show() {
+            const overlay = document.getElementById("loadingOverlay");
+            overlay.classList.remove("hidden", "closing");
+            ScrollManager.disable();
+          },
+
+          hide() {
+            const overlay = document.getElementById("loadingOverlay");
+            overlay.classList.add("closing");
+
+            setTimeout(() => {
+              overlay.classList.remove("closing");
+              overlay.classList.add("hidden");
+              ScrollManager.enable();
+            }, CONFIG.UI.MODAL_TRANSITION_DELAY);
+          },
+        },
+
+        // ========== TOAST/ALERT ==========
+
+        toast: {
+          show(message, type = "info", duration = CONFIG.UI.TOAST_DURATION) {
+            const container = document.getElementById("toastContainer");
+            const toast = document.createElement("div");
+            toast.className = `toast ${type}`;
+            toast.setAttribute("role", "alert");
+            toast.setAttribute("aria-live", "assertive");
+
+            const icons = {
+              error: "alert-circle",
+              success: "check-circle",
+              info: "info",
+            };
+
+            toast.innerHTML = `
+          <i data-lucide="${icons[type]}" class="w-5 h-5 flex-shrink-0" aria-hidden="true"></i>
+          <span class="flex-1 text-sm font-medium">${message}</span>
+          <button class="toast-close" onclick="this.parentElement.remove()" aria-label="Fechar notificação">
+              <i data-lucide="x" class="w-4 h-4" aria-hidden="true"></i>
+          </button>
+          <div class="toast-progress"></div>
+        `;
+
+            container.appendChild(toast);
+            lucide.createIcons();
+
+            this._setupToastProgress(toast, duration);
+          },
+
+          _setupToastProgress(toast, duration) {
+            const progressBar = toast.querySelector(".toast-progress");
+            let startTime = Date.now();
+            let totalDuration = duration;
+            let elapsedBeforePause = 0;
+            let animationId = null;
+            let isPaused = false;
+
+            function updateProgress() {
+              if (isPaused) return;
+
+              const currentElapsed =
+                elapsedBeforePause + (Date.now() - startTime);
+              const progress = Math.max(0, 1 - currentElapsed / totalDuration);
+              progressBar.style.transform = `scaleX(${progress})`;
+
+              if (currentElapsed >= totalDuration) {
+                toast.classList.add("removing");
+                setTimeout(() => toast.remove(), 300);
+              } else {
+                animationId = requestAnimationFrame(updateProgress);
+              }
+            }
+
+            toast.addEventListener("mouseenter", () => {
+              if (isPaused) return;
+              isPaused = true;
+              if (animationId) {
+                cancelAnimationFrame(animationId);
+              }
+              elapsedBeforePause += Date.now() - startTime;
+            });
+
+            toast.addEventListener("mouseleave", () => {
+              if (!isPaused) return;
+              isPaused = false;
+              startTime = Date.now();
+              animationId = requestAnimationFrame(updateProgress);
+            });
+
+            animationId = requestAnimationFrame(updateProgress);
+          },
+        },
+
+        // ========== CONFIRMAÇÃO ==========
+
+        confirmation: {
+          lastFocusedElement: null,
+          callback: null,
+
+          show(title, message, options = {}) {
+            return new Promise((resolve) => {
+              this.lastFocusedElement = document.activeElement;
+
+              const modal = document.getElementById("confirmationModal");
+              const titleElement = document.getElementById("confirmationTitle");
+              const contentElement = document
+                .getElementById("confirmationContent")
+                .querySelector("p");
+              const iconElement = document.getElementById("confirmationIcon");
+              const confirmBtn = document.getElementById("confirmationConfirm");
+              const cancelBtn = document.getElementById("confirmationCancel");
+
+              titleElement.textContent = title;
+              contentElement.textContent = message;
+
+              const iconConfig = {
+                warning: { icon: "alert-triangle", color: "text-amber-600" },
+                error: { icon: "alert-circle", color: "text-red-600" },
+                info: { icon: "info", color: "text-blue-600" },
+                question: { icon: "help-circle", color: "text-gray-600" },
+              };
+
+              const config = iconConfig[options.type || "warning"];
+              iconElement.setAttribute("data-lucide", config.icon);
+              iconElement.className = `w-6 h-6 ${config.icon}`;
+
+              confirmBtn.textContent = options.confirmText || "Continuar";
+
+              if (options.cancelText === null) {
+                cancelBtn.style.display = 'none';
+              } else {
+                cancelBtn.style.display = 'block';
+                cancelBtn.textContent = options.cancelText || "Cancelar";
+              }
+
+              const handleConfirm = () => {
+                this.close();
+                resolve(true);
+              };
+
+              const handleCancel = () => {
+                this.close();
+                resolve(false);
+              };
+
+              const handleEscape = (e) => {
+                if (e.key === "Escape") {
+                  handleCancel();
+                }
+              };
+
+              const handleFocusTrap = (e) => {
+                if (e.key !== "Tab") return;
+
+                const focusableElements = modal.querySelectorAll(
+                  'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"]):not([disabled])',
+                );
+
+                const firstElement = focusableElements[0];
+                const lastElement =
+                  focusableElements[focusableElements.length - 1];
+
+                if (e.shiftKey && document.activeElement === firstElement) {
+                  e.preventDefault();
+                  lastElement.focus();
+                } else if (
+                  !e.shiftKey &&
+                  document.activeElement === lastElement
+                ) {
+                  e.preventDefault();
+                  firstElement.focus();
+                }
+              };
+
+              confirmBtn.replaceWith(confirmBtn.cloneNode(true));
+              cancelBtn.replaceWith(cancelBtn.cloneNode(true));
+
+              const newConfirmBtn = document.getElementById(
+                "confirmationConfirm",
+              );
+              const newCancelBtn =
+                document.getElementById("confirmationCancel");
+
+              newConfirmBtn.addEventListener("click", handleConfirm);
+              newCancelBtn.addEventListener("click", handleCancel);
+              document.addEventListener("keydown", handleEscape);
+              document.addEventListener("keydown", handleFocusTrap);
+
+              this.callback = () => {
+                document.removeEventListener("keydown", handleEscape);
+                document.removeEventListener("keydown", handleFocusTrap);
+
+                if (this.lastFocusedElement && this.lastFocusedElement.focus) {
+                  setTimeout(() => {
+                    this.lastFocusedElement.focus();
+                    this.lastFocusedElement = null;
+                  }, CONFIG.UI.FOCUS_DELAY);
+                }
+              };
+
+              modal.classList.remove("hidden");
+              ScrollManager.disable();
+              lucide.createIcons();
+
+              setTimeout(() => newCancelBtn.focus(), CONFIG.UI.FOCUS_DELAY);
+            });
+          },
+
+          close() {
+            const modal = document.getElementById("confirmationModal");
+            modal.classList.add("closing");
+
+            setTimeout(() => {
+              modal.classList.remove("closing");
+              modal.classList.add("hidden");
+              ScrollManager.enable();
+              if (this.callback) {
+                this.callback();
+                this.callback = null;
+              }
+            }, CONFIG.UI.MODAL_TRANSITION_DELAY);
+          },
+        },
+
+        // ========== COLLAPSE ==========
+
+        collapse: {
+          toggle(id, isModal = false) {
+            const prefix = isModal ? "collapse-modal-" : "collapse-";
+            const chevronPrefix = isModal ? "chevron-modal-" : "chevron-";
+
+            const content = document.getElementById(`${prefix}${id}`);
+            const chevron = document.getElementById(`${chevronPrefix}${id}`);
+            const funcName = isModal ? "toggleModalCollapse" : "toggleCollapse";
+            const button = document.querySelector(
+              `[onclick="${funcName}('${id}')"]`,
+            );
+            const isActive = content.classList.contains("active");
+
+            content.classList.toggle("active");
+            chevron.style.transform = content.classList.contains("active")
+              ? "rotate(0deg)"
+              : "rotate(-90deg)";
+
+            if (button) {
+              button.setAttribute("aria-expanded", !isActive);
+            }
+
+            const interactiveElements = content.querySelectorAll(
+              'button, input, select, textarea, a[href], [tabindex]:not([tabindex="-1"])',
+            );
+            interactiveElements.forEach((el) => {
+              if (content.classList.contains("active")) {
+                const originalTabindex = el.dataset.originalTabindex;
+                if (originalTabindex) {
+                  el.setAttribute("tabindex", originalTabindex);
+                  delete el.dataset.originalTabindex;
+                } else {
+                  el.removeAttribute("tabindex");
+                }
+              } else {
+                if (el.hasAttribute("tabindex")) {
+                  el.dataset.originalTabindex = el.getAttribute("tabindex");
+                }
+                el.setAttribute("tabindex", "-1");
+              }
+            });
+          },
+
+          initializeCollapsed() {
+            const collapsedSections = document.querySelectorAll(
+              ".collapsible-content:not(.active)",
+            );
+            collapsedSections.forEach((section) => {
+              const interactiveElements = section.querySelectorAll(
+                'button, input, select, textarea, a[href], [tabindex]:not([tabindex="-1"])',
+              );
+              interactiveElements.forEach((el) => {
+                if (el.hasAttribute("tabindex")) {
+                  el.dataset.originalTabindex = el.getAttribute("tabindex");
+                }
+                el.setAttribute("tabindex", "-1");
+              });
+            });
+          },
+        },
+
+        // ========== ELEMENTS ==========
+
+        elements: {
+          show(elementId) {
+            document.getElementById(elementId).classList.remove("hidden");
+          },
+
+          hide(elementId) {
+            document.getElementById(elementId).classList.add("hidden");
+          },
+
+          enable(elementId) {
+            const element = document.getElementById(elementId);
+            element.disabled = false;
+            element.classList.remove("opacity-50", "cursor-not-allowed");
+            element.removeAttribute("aria-disabled");
+          },
+
+          disable(elementId) {
+            const element = document.getElementById(elementId);
+            element.disabled = true;
+            element.classList.add("opacity-50", "cursor-not-allowed");
+            element.setAttribute("aria-disabled", "true");
+          },
+
+          setText(elementId, text) {
+            document.getElementById(elementId).textContent = text;
+          },
+
+          setHTML(elementId, html) {
+            document.getElementById(elementId).innerHTML = html;
+          },
+        },
+
+        // ========== KEYBOARD ==========
+
+        keyboard: {
+          setup() {
+            document.addEventListener("keydown", (e) => {
+              if (e.key === "Tab") {
+                document.body.classList.add("using-keyboard");
+              }
+            });
+
+            document.addEventListener("mousedown", () => {
+              document.body.classList.remove("using-keyboard");
+            });
+          },
+        },
+      };
+
+      // ============================================
+      // FILE MANAGER
+      // ============================================
+
+      const FileManager = {
+
+        processarArquivo(file, onSuccess, onError) {
+          if (!ValidationManager.validarArquivoCSV(file.name)) {
+            onError(CONFIG.MENSAGENS.ERRO.ARQUIVO_INVALIDO);
+            return;
+          }
+
+          const reader = new FileReader();
+
+          reader.onload = (e) => {
+            try {
+              const dados = this.parseCSV(e.target.result);
+              onSuccess(dados, file.name);
+            } catch (error) {
+              onError(CONFIG.MENSAGENS.ERRO.PROCESSAMENTO(error.message));
+            }
+          };
+
+          reader.onerror = () => {
+            onError(CONFIG.MENSAGENS.ERRO.LEITURA);
+          };
+
+          reader.readAsText(file, "UTF-8");
+        },
+
+        parseCSV(csvContent) {
+          const separador = csvContent.includes(";") ? ";" : ",";
+          const linhas = csvContent.split("\n").filter((l) => l.trim());
+
+          if (linhas.length < 2) {
+            throw new Error("Arquivo vazio ou sem dados.");
+          }
+
+          const cabecalho = this._parseLinha(linhas[0], separador);
+          const dados = [];
+
+          for (let i = 1; i < linhas.length; i++) {
+            const valores = this._parseLinha(linhas[i], separador);
+            const obj = {};
+
+            cabecalho.forEach((col, idx) => {
+              obj[col] = valores[idx] || "";
+            });
+
+            dados.push(obj);
+          }
+
+          return { cabecalho, dados };
+        },
+
+        converterParaCandidatos(dadosCSV) {
+          const { cabecalho, dados } = dadosCSV;
+          const mapeamento = ValidationManager.detectarColunas(cabecalho);
+
+          if (!mapeamento) {
+            throw new Error("Colunas obrigatórias não encontradas");
+          }
+
+          const candidatos = dados
+            .map((linha, idx) => ({
+              index: idx,
+              nome: linha[mapeamento.nome] || "",
+              geral: this._parseNumero(linha[mapeamento.geral]),
+              pcd: this._parseNumero(linha[mapeamento.pcd]),
+              pn: this._parseNumero(linha[mapeamento.pn]),
+              selecionado: false,
+            }))
+            .filter((c) => ValidationManager.validarLinhaCandidato(c));
+
+          if (candidatos.length === 0) {
+            throw new Error("Nenhum candidato válido encontrado");
+          }
+
+          return candidatos;
+        },
+
+        exportarResultadoCSV(resultado, nomeArquivo = null) {
+          const csv = [
+            ["posicao_final", "nome", "classificacao_geral", "tipo_vaga"],
+            ...resultado.map((r) => [
+              r.posicao,
+              `"${r.nome}"`,
+              r.classificacaoGeral,
+              r.tipoVaga,
+            ]),
+          ]
+            .map((linha) => linha.join(","))
+            .join("\n");
+
+          const blob = new Blob(["\ufeff" + csv], {
+            type: "text/csv;charset=utf-8;",
+          });
+
+          const link = document.createElement("a");
+          link.href = URL.createObjectURL(blob);
+          link.download =
+            nomeArquivo ||
+            `resultado_reclassificacao_${new Date().toISOString().slice(0, 10)}.csv`;
+          link.click();
+        },
+
+        setupUploadArea(uploadAreaId, fileInputId, onFileSelected) {
+          const uploadArea = document.getElementById(uploadAreaId);
+          const fileInput = document.getElementById(fileInputId);
+
+          uploadArea.addEventListener("click", () => fileInput.click());
+
+          uploadArea.addEventListener("dragover", (e) => {
+            e.preventDefault();
+            uploadArea.classList.add("drag-over");
+          });
+
+          uploadArea.addEventListener("dragleave", () => {
+            uploadArea.classList.remove("drag-over");
+          });
+
+          uploadArea.addEventListener("drop", (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove("drag-over");
+            if (e.dataTransfer.files[0]) {
+              onFileSelected(e.dataTransfer.files[0]);
+            }
+          });
+
+          fileInput.addEventListener("change", (e) => {
+            if (e.target.files[0]) {
+              onFileSelected(e.target.files[0]);
+            }
+          });
+        },
+
+        // ========== MÉTODOS PRIVADOS ==========
+
+        _parseLinha(linha, separador) {
+          return linha
+            .split(separador)
+            .map((v) => v.trim().replace(/["\r]/g, ""));
+        },
+
+        _parseNumero(valor) {
+          if (valor === "" || valor === null || valor === undefined) {
+            return Infinity;
+          }
+          
+          const valorLimpo = String(valor).replace(/\D/g, '');
+          
+          if (valorLimpo === '') {
+            return Infinity;
+          }
+          
+          const num = parseInt(valorLimpo, 10);
+          
+          return (num > 0 && Number.isInteger(num)) ? num : Infinity;
+        },
+      };
+
+      // ============================================
+      // CLASSIFICATION ENGINE
+      // ============================================
+
+      const ClassificationEngine = {
+        
+        reclassificar(candidatos, blocos) {
+          // Clona candidatos para não alterar o original
+          const candidatosProcesso = candidatos.map((c) => ({
+            ...c,
+            selecionado: false,
+          }));
+
+          const resultado = [];
+          let posicao = 1;
+
+          // Itera sobre cada bloco de distribuição
+          for (let blocoIndex = 0; blocoIndex < blocos.length; blocoIndex++) {
+            const bloco = blocos[blocoIndex];
+            const limiteBloco = bloco.quantidadeTotal || Infinity;
+            const posicaoInicioBloco = posicao;
+
+            // Aplica o padrão do bloco ciclicamente até atingir o limite
+            while (posicao <= limiteBloco && this._existeNaoSelecionado(candidatosProcesso)) {
+              
+              // Itera sobre o padrão do bloco
+              for (let i = 0; i < bloco.padrao.length; i++) {
+                const regra = bloco.padrao[i];
+                
+                // Aplica as repetições da regra
+                for (let r = 0; r < regra.repeticoes; r++) {
+                  // Verifica se ainda há candidatos e se não ultrapassou o limite do bloco
+                  if (!this._existeNaoSelecionado(candidatosProcesso) || posicao > limiteBloco) {
+                    break;
+                  }
+
+                  const candidatoSelecionado = this._selecionarCandidato(
+                    candidatosProcesso,
+                    regra.tipo,
+                  );
+
+                  if (candidatoSelecionado) {
+                    resultado.push(
+                      this._criarResultado(candidatoSelecionado, posicao),
+                    );
+                    posicao++;
+                  } else {
+                    break;
+                  }
+                }
+                
+                // Se ultrapassou limite do bloco, para de processar este bloco
+                if (posicao > limiteBloco) break;
+              }
+            }
+
+            // Se não há mais candidatos, para de processar blocos
+            if (!this._existeNaoSelecionado(candidatosProcesso)) {
+              break;
+            }
+          }
+
+          return resultado;
+        },
+
+        calcularEstatisticas(resultado) {
+          const contadores = {};
+          const percentuais = {};
+
+          getCotasDisponiveis().forEach((tipo) => {
+            contadores[tipo] = resultado.filter(
+              (r) => r.tipoVaga === tipo,
+            ).length;
+            percentuais[tipo] = (
+              (contadores[tipo] / resultado.length) *
+              100
+            ).toFixed(1);
+          });
+
+          return {
+            total: resultado.length,
+            contadores,
+            percentuais,
+          };
+        },
+
+        analisarConformidade(resultado, percentuaisEsperados) {
+          const estatisticas = this.calcularEstatisticas(resultado);
+          const desvios = {};
+          let maxDesvio = 0;
+
+          getCotasDisponiveis().forEach((tipo) => {
+            const desvio = Math.abs(
+              parseFloat(estatisticas.percentuais[tipo]) -
+                percentuaisEsperados[tipo],
+            );
+            desvios[tipo] = desvio;
+            if (desvio > maxDesvio) maxDesvio = desvio;
+          });
+
+          return {
+            conforme: maxDesvio < CONFIG.VALIDACAO.DIFERENCA_PADRAO_AVISO,
+            maxDesvio,
+            desvios,
+            estatisticas,
+          };
+        },
+
+        // ========== MÉTODOS PRIVADOS ==========
+
+        _existeNaoSelecionado(candidatos) {
+          return candidatos.some((c) => !c.selecionado);
+        },
+
+        _selecionarCandidato(candidatos, tipoRegra) {
+          let candidato = null;
+          let tipoVaga = "AC";
+
+          if (tipoRegra === "AC") {
+            candidato = this._selecionarMelhorGeral(candidatos);
+          } else {
+            candidato = this._selecionarMelhorCota(candidatos, tipoRegra);
+            if (candidato) {
+              tipoVaga = tipoRegra;
+            } else {
+              candidato = this._selecionarMelhorGeral(candidatos);
+              tipoVaga = "AC";
+            }
+          }
+
+          if (!candidato) return null;
+
+          candidato.selecionado = true;
+          candidato.tipoVagaAtribuida = tipoVaga;
+
+          return candidato;
+        },
+
+        _selecionarMelhorGeral(candidatos) {
+          let melhorIdx = -1;
+          let melhorVal = Infinity;
+
+          for (let i = 0; i < candidatos.length; i++) {
+            if (!candidatos[i].selecionado && candidatos[i].geral < melhorVal) {
+              melhorVal = candidatos[i].geral;
+              melhorIdx = i;
+            }
+          }
+
+          return melhorIdx === -1 ? null : candidatos[melhorIdx];
+        },
+
+        _selecionarMelhorCota(candidatos, tipoCota) {
+          let melhorIdx = -1;
+          let melhorVal = Infinity;
+
+          for (let i = 0; i < candidatos.length; i++) {
+            if (candidatos[i].selecionado) continue;
+
+            const valor = candidatos[i][tipoCota.toLowerCase()];
+            if (valor < melhorVal) {
+              melhorVal = valor;
+              melhorIdx = i;
+            }
+          }
+
+          return melhorIdx === -1 || melhorVal === Infinity
+            ? null
+            : candidatos[melhorIdx];
+        },
+
+        _criarResultado(candidato, posicao) {
+          return {
+            posicao,
+            nome:
+              candidato.nome && candidato.nome.trim() !== ""
+                ? candidato.nome
+                : CONFIG.LABELS.NOME_NAO_INFORMADO,
+            classificacaoGeral: isFinite(candidato.geral)
+              ? candidato.geral
+              : CONFIG.LABELS.CLASSIFICACAO_AUSENTE,
+            tipoVaga: candidato.tipoVagaAtribuida,
+          };
+        },
+      };
+
+      // ============================================
+      // VARIÁVEIS GLOBAIS
+      // ============================================
+
+      let todosOsCandidatos = [];
+      let resultadoFinal = [];
+      let nomeArquivoOriginal = "";
+      let blocosDistribuicao = [];
+      let inconsistenciasCache = {
+        errosCriticos: {
+          candidatosComCotaSemGeral: [],
+          listaCotaMaiorQueGeral: [],
+          classificacoesInvertidas: [],
+        },
+        avisos: {
+          geral: { duplicatas: [], numerosAusentes: [] },
+          pn: { duplicatas: [], numerosAusentes: [] },
+          pcd: { duplicatas: [], numerosAusentes: [] },
+        },
+      };
+      let ultimoIndiceBlocoSelecionado = 0;
+
+      // ============================================
+      // INICIALIZAÇÃO
+      // ============================================
+
+      document.addEventListener("DOMContentLoaded", () => {
+        lucide.createIcons();
+        setupUpload();
+        setupPatternButtons();
+        setupActions();
+        setupMasterDetail();
+        carregarConfigPadraoDoBackend();
+        UIManager.keyboard.setup();
+        UIManager.collapse.initializeCollapsed();
+        verificarSeEhOwner();
+        initTabTooltips();
+      });
+
+      function verificarSeEhOwner() {
+        // Dado embutido pelo servidor — sem round trip
+        if (IS_OWNER_INICIAL) {
+          const btnAdmin = document.getElementById('btnAdmin');
+          btnAdmin.href = ADMIN_URL_INICIAL;
+          btnAdmin.classList.remove('hidden');
+          lucide.createIcons();
+        }
+      }
+
+      // ============================================
+      // GERENCIAMENTO DE TABS
+      // ============================================
+
+      function initTabTooltips() {
+        document.querySelectorAll('.tab-button[data-tab-tooltip]').forEach(btn => {
+          const isDisabled = btn.classList.contains('tab-disabled');
+          if (btn._tippyTab) {
+            btn._tippyTab.destroy();
+            btn._tippyTab = null;
+          }
+          if (isDisabled) {
+            btn._tippyTab = tippy(btn, {
+              content: btn.dataset.tabTooltip,
+              theme: 'custom',
+              placement: 'top',
+              arrow: true,
+              animation: 'fade',
+              duration: [200, 150],
+              appendTo: document.body,
+            });
+          }
+        });
+      }
+
+      function switchTab(tabName) {
+        UIManager.tabs.switch(tabName);
+      }
+
+      function enableTab(tabName) {
+        UIManager.tabs.enable(tabName);
+      }
+
+      function toggleCollapse(id) {
+        UIManager.collapse.toggle(id, false);
+      }
+
+      function toggleModalCollapse(id) {
+        UIManager.collapse.toggle(id, true);
+      }
+
+      // ============================================
+      // UI - LOADING E TOAST
+      // ============================================
+
+      function showLoading() {
+        UIManager.loading.show();
+      }
+
+      function hideLoading() {
+        UIManager.loading.hide();
+      }
+
+      function showToast(
+        message,
+        type = "info",
+        duration = CONFIG.UI.TOAST_DURATION,
+      ) {
+        UIManager.toast.show(message, type, duration);
+      }
+
+      function showAlert(message, type) {
+        UIManager.toast.show(message, type);
+      }
+
+      // ============================================
+      // UPLOAD DE ARQUIVO
+      // ============================================
+
+      function setupUpload() {
+        FileManager.setupUploadArea(
+          "uploadArea",
+          "fileInput",
+          processarArquivo,
+        );
+      }
+
+      function processarArquivo(file) {
+        if (todosOsCandidatos.length > 0) {
+          const conf = CONFIG.MENSAGENS.CONFIRMACAO.SUBSTITUIR_ARQUIVO;
+          showConfirmation(conf.titulo, conf.mensagem(nomeArquivoOriginal), {
+            type: "warning",
+            confirmText: "Sim, Substituir",
+            cancelText: "Cancelar",
+          }).then((confirmed) => {
+            if (confirmed) {
+              carregarArquivo(file);
+            } else {
+              document.getElementById("fileInput").value = "";
+            }
+          });
+        } else {
+          carregarArquivo(file);
+        }
+      }
+
+      function carregarArquivo(file) {
+        FileManager.processarArquivo(
+          file,
+          // onSuccess
+          (dadosCSV, fileName) => {
+            validarECarregar(dadosCSV, fileName);
+          },
+          // onError
+          (mensagemErro) => {
+            showAlert(mensagemErro, "error");
+            document.getElementById("fileInput").value = "";
+          },
+        );
+      }
+
+      function validarECarregar(dadosCSV, fileName) {
+        try {
+          todosOsCandidatos = FileManager.converterParaCandidatos(dadosCSV);
+        } catch (error) {
+          showAlert(CONFIG.MENSAGENS.ERRO.COLUNAS_OBRIGATORIAS, "error");
+          document.getElementById("fileInput").value = "";
+          return;
+        }
+
+        const candidatosProcessaveis = todosOsCandidatos.filter(c => isFinite(c.geral));
+        
+        if (candidatosProcessaveis.length === 0) {
+          showAlert(
+            "Nenhum candidato com classificação geral válida encontrado.\n\n" +
+            "Verifique se a coluna 'classificacao_geral' contém apenas números inteiros positivos (sem letras, símbolos ou valores decimais).",
+            "error"
+          );
+          todosOsCandidatos = [];
+          document.getElementById("fileInput").value = "";
+          return;
+        }
+
+        nomeArquivoOriginal = fileName;
+        verificarInconsistenciasAuto();
+
+        UIManager.elements.show("fileInfo");
+        UIManager.elements.setText(
+          "fileName",
+          `${fileName} - ${todosOsCandidatos.length} candidatos`,
+        );
+        UIManager.elements.show("uploadActions");
+
+        const totalErrosCriticos =
+          ValidationManager.contarErrosCriticos(inconsistenciasCache);
+        const totalAvisos =
+          ValidationManager.contarAvisos(inconsistenciasCache);
+        const totalInconsistencias = totalErrosCriticos + totalAvisos;
+
+        if (totalInconsistencias > 0) {
+          if (totalErrosCriticos > 0) {
+            showAlert(
+              CONFIG.MENSAGENS.AVISO.ARQUIVO_COM_ERROS(
+                todosOsCandidatos.length,
+                totalErrosCriticos,
+              ),
+              "error",
+            );
+          } else {
+            showAlert(
+              CONFIG.MENSAGENS.AVISO.ARQUIVO_COM_AVISOS(
+                todosOsCandidatos.length,
+                totalAvisos,
+              ),
+              "error",
+            );
+          }
+          verificarInconsistencias();
+        } else {
+          showAlert(
+            CONFIG.MENSAGENS.SUCESSO.ARQUIVO_CARREGADO(
+              todosOsCandidatos.length,
+            ),
+            "success",
+          );
+          switchTab("config");
+        }
+
+        lucide.createIcons();
+        document.getElementById("fileInput").value = "";
+      }
+
+      function setupActions() {
+        document
+          .getElementById("btnNextUpload")
+          .addEventListener("click", () => {
+            if (UIManager.tabs.enabled.config) switchTab("config");
+          });
+
+        document
+          .getElementById("btnClearUpload")
+          .addEventListener("click", limparUpload);
+
+        document
+          .getElementById("btnCheckInconsistencies")
+          .addEventListener("click", verificarInconsistencias);
+
+        document
+          .getElementById("btnDownloadModelo")
+          .addEventListener("click", downloadModelo);
+      }
+
+      function limparUpload() {
+        const conf = CONFIG.MENSAGENS.CONFIRMACAO.LIMPAR_DADOS;
+        showConfirmation(conf.titulo, conf.mensagem, {
+          type: "warning",
+          confirmText: "Sim, Limpar",
+          cancelText: "Cancelar",
+        }).then((confirmed) => {
+          if (!confirmed) return;
+
+          todosOsCandidatos = [];
+          resultadoFinal = [];
+          nomeArquivoOriginal = "";
+          inconsistenciasCache = { duplicatas: [], numerosAusentes: [] };
+          UIManager.tabs.enabled = {
+            upload: true,
+            config: false,
+            resultado: false,
+          };
+
+          UIManager.elements.hide("fileInfo");
+          UIManager.elements.hide("uploadActions");
+          UIManager.elements.hide("btnCheckInconsistencies");
+
+          document.getElementById("fileInput").value = "";
+          document.querySelectorAll(".tab-button").forEach((btn) => {
+            if (btn.id !== "tab-upload") btn.classList.add("tab-disabled");
+          });
+          initTabTooltips();
+          showAlert(CONFIG.MENSAGENS.SUCESSO.DADOS_LIMPOS, "info");
+          lucide.createIcons();
+        });
+      }
+
+      function downloadModelo() {
+        // Dados fictícios do modelo
+        const dadosExemplo = [
+          ["nome", "classificacao_geral", "classificacao_negro", "classificacao_deficiente"],
+          
+          // AC (20 candidatos)
+          ["Ana Silva Santos", "1", "", ""],
+          ["Carlos Eduardo Oliveira", "2", "", ""],
+          ["Juliana Mendes Ferreira", "4", "", ""],
+          ["Paulo Roberto Silva", "6", "", ""],
+          ["Camila Souza Martins", "8", "", ""],
+          ["Lucas Gabriel Costa", "11", "", ""],
+          ["Patrícia Alves Barbosa", "13", "", ""],
+          ["Bruno Henrique Dias", "15", "", ""],
+          ["Gabriela Cristina Ramos", "17", "", ""],
+          ["Felipe Augusto Moreira", "19", "", ""],
+          ["Beatriz Ferreira Souza", "21", "", ""],
+          ["Gustavo Henrique Lima", "22", "", ""],
+          ["Isabella Martins Rocha", "23", "", ""],
+          ["Leonardo Silva Cardoso", "24", "", ""],
+          ["Larissa Oliveira Santos", "25", "", ""],
+          ["Rafael Alves Pereira", "26", "", ""],
+          ["Carolina Costa Ribeiro", "27", "", ""],
+          ["André Luiz Fernandes", "28", "", ""],
+          ["Tatiana Rodrigues Gomes", "29", "", ""],
+          ["Marcos Vinícius Araújo", "30", "", ""],
+          
+          // Somente PN (5 candidatos)
+          ["Maria Aparecida Costa", "3", "1", ""],
+          ["João Pedro Almeida", "5", "2", ""],
+          ["Fernanda Lima Rodrigues", "7", "3", ""],
+          ["Amanda Cristina Rocha", "12", "5", ""],
+          ["Thiago Santos Barbosa", "16", "6", ""],
+          
+          // Somente PcD (3 candidatos)
+          ["Ricardo Santos Pereira", "9", "", "1"],
+          ["Rodrigo Fernandes Lima", "14", "", "3"],
+          ["Mariana Vitória Campos", "18", "", "4"],
+          
+          // PN e PcD (interseção - 2 candidatos)
+          ["Renata Silva Oliveira", "10", "4", "2"],
+          ["Daniel Costa Almeida", "20", "7", "5"]
+        ];
+
+        // Gera CSV
+        const csv = dadosExemplo
+          .map(linha => linha.join(","))
+          .join("\n");
+
+        // Cria blob com BOM UTF-8
+        const blob = new Blob(["\ufeff" + csv], {
+          type: "text/csv;charset=utf-8;"
+        });
+
+        // Download
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = "modelo_convocacao_exemplo.csv";
+        link.click();
+
+        showToast("Modelo baixado com sucesso!", "success");
+      }
+
+      // ============================================
+      // VALIDAÇÃO DE INCONSISTÊNCIAS
+      // ============================================
+
+      function verificarInconsistenciasAuto() {
+        if (todosOsCandidatos.length === 0) {
+          UIManager.elements.hide("btnCheckInconsistencies");
+          return;
+        }
+
+        inconsistenciasCache =
+          ValidationManager.verificarInconsistencias(todosOsCandidatos);
+
+        const totalErrosCriticos =
+          ValidationManager.contarErrosCriticos(inconsistenciasCache);
+        const totalAvisos =
+          ValidationManager.contarAvisos(inconsistenciasCache);
+        const totalProblemas = totalErrosCriticos + totalAvisos;
+
+        const btnInconsistencias = document.getElementById(
+          "btnCheckInconsistencies",
+        );
+
+        if (totalProblemas > 0) {
+          UIManager.elements.show("btnCheckInconsistencies");
+          const textElement = btnInconsistencias.querySelector(".btn-text");
+          textElement.textContent = `Verificar Inconsistências (${totalProblemas})`;
+
+          if (totalErrosCriticos > 0) {
+            bloquearAbaConfiguracao();
+          } else {
+            desbloquearAbaConfiguracao();
+          }
+        } else {
+          UIManager.elements.hide("btnCheckInconsistencies");
+          desbloquearAbaConfiguracao();
+        }
+      }
+
+      function bloquearAbaConfiguracao() {
+        UIManager.tabs.disable("config");
+        const tabConfig = document.getElementById("tab-config");
+        tabConfig.setAttribute("aria-disabled", "true");
+
+        UIManager.elements.disable("btnNextUpload");
+      }
+
+      function desbloquearAbaConfiguracao() {
+        UIManager.tabs.enable("config");
+        const tabConfig = document.getElementById("tab-config");
+        tabConfig.removeAttribute("aria-disabled");
+
+        UIManager.elements.enable("btnNextUpload");
+      }
+
+      // ============================================
+      // MODAL DE INCONSISTÊNCIAS
+      // ============================================
+
+      function verificarInconsistencias() {
+        lastFocusedElement = document.activeElement;
+
+        mostrarModalInconsistencias(inconsistenciasCache);
+        document.addEventListener("keydown", handleModalKeydown);
+        document.addEventListener(
+          "keydown",
+          handleInconsistenciesModalFocusTrap,
+        );
+      }
+
+      function mostrarModalInconsistencias(cacheInconsistencias) {
+        const content = document.getElementById("inconsistenciesContent");
+        const { errosCriticos, avisos } = cacheInconsistencias;
+
+        const qtdCotaSemGeral = errosCriticos.candidatosComCotaSemGeral.length;
+        const qtdCotaMaior = errosCriticos.listaCotaMaiorQueGeral.length;
+        const qtdInvertidas = errosCriticos.classificacoesInvertidas.length;
+        const qtdInversoesPN = errosCriticos.inversoesOrdemPN.length;
+        const qtdInversoesPcD = errosCriticos.inversoesOrdemPcD.length;
+        const totalErrosCriticos =
+          qtdCotaSemGeral +
+          qtdCotaMaior +
+          qtdInvertidas +
+          qtdInversoesPN +
+          qtdInversoesPcD;
+
+        const qtdSemNome = avisos.candidatosSemNome.length;
+
+        const qtdDuplicatasGeral = new Set(
+          avisos.geral.duplicatas.map((d) => d.numero),
+        ).size;
+        const qtdAusentesGeral = avisos.geral.numerosAusentes.length;
+        const qtdDuplicatasPN = new Set(
+          avisos.pn.duplicatas.map((d) => d.numero),
+        ).size;
+        const qtdAusentesPN = avisos.pn.numerosAusentes.length;
+        const qtdDuplicatasPcD = new Set(
+          avisos.pcd.duplicatas.map((d) => d.numero),
+        ).size;
+        const qtdAusentesPcD = avisos.pcd.numerosAusentes.length;
+
+        const totalAvisos =
+          qtdSemNome +
+          qtdDuplicatasGeral +
+          qtdAusentesGeral +
+          qtdDuplicatasPN +
+          qtdAusentesPN +
+          qtdDuplicatasPcD +
+          qtdAusentesPcD;
+
+        const totalProblemas = totalErrosCriticos + totalAvisos;
+
+        if (totalProblemas === 0) {
+          content.innerHTML = `
+      <div class="flex flex-col items-center justify-center py-16 text-center">
+          <i data-lucide="check-circle" class="w-16 h-16 text-green-500 mb-4"></i>
+          <h3 class="text-lg font-semibold text-gray-900 mb-2">Tudo certo! ✔</h3>
+          <p class="text-sm text-gray-500">Nenhuma inconsistência encontrada nos dados.</p>
+      </div>
+    `;
+        } else {
+          let html = `
+      <div class="mb-6 bg-gray-50 border border-gray-200 rounded-lg p-5">
+          <div class="flex items-center gap-2 mb-4">
+              <i data-lucide="file-search" class="w-5 h-5 text-gray-600" aria-hidden="true"></i>
+              <h3 class="text-sm font-semibold text-gray-700 uppercase tracking-wide">Resumo da Verificação</h3>
+          </div>
+          
+          ${
+            totalErrosCriticos > 0 || totalAvisos > 0
+              ? `
+              <div class="flex items-center gap-4">
+                  ${
+                    totalErrosCriticos > 0
+                      ? `
+                    <div class="flex items-center gap-2">
+                        <span class="inline-flex items-center justify-center w-6 h-6 bg-red-50 text-red-600 border border-red-200 rounded-full text-xs font-bold">
+                            ${totalErrosCriticos}
+                        </span>
+                        <span class="text-sm text-gray-700">
+                            ${totalErrosCriticos === 1 ? "erro crítico" : "erros críticos"}
+                        </span>
+                    </div>
+                `
+                      : ""
+                  }
+
+                ${
+                  totalAvisos > 0
+                    ? `
+                    <div class="flex items-center gap-2">
+                        <span class="inline-flex items-center justify-center w-6 h-6 bg-amber-50 text-amber-700 border border-amber-300 rounded-full text-xs font-bold">
+                            ${totalAvisos}
+                        </span>
+                        <span class="text-sm text-gray-700">
+                            ${totalAvisos === 1 ? "aviso" : "avisos"}
+                        </span>
+                    </div>
+                `
+                    : ""
+                }
+              </div>
+          `
+              : ""
+          }
+      </div>
+    `;
+
+          if (totalErrosCriticos > 0) {
+            html += `
+        <div class="mb-8">
+            <div class="flex items-center gap-2 mb-4 pb-3 border-b border-gray-200">
+                <i data-lucide="alert-triangle" class="w-5 h-5 text-red-600"></i>
+                  <h3 class="font-semibold text-gray-900">Erros Críticos</h3>
+                  <span class="text-xs text-red-600">(impedem processamento)</span>
+              </div>
+              <div class="space-y-3">
+      `;
+
+            if (qtdCotaSemGeral > 0) {
+              html += gerarItemInconsistencia(
+                CONFIG.TIPOS_INCONSISTENCIAS.ERROS_CRITICOS.COTA_SEM_GERAL
+                  .titulo,
+                qtdCotaSemGeral,
+                CONFIG.TIPOS_INCONSISTENCIAS.ERROS_CRITICOS.COTA_SEM_GERAL.id,
+                errosCriticos.candidatosComCotaSemGeral
+                  .map(
+                    (item) => `
+                  <div class="flex items-baseline gap-2 py-2 border-b border-gray-100 last:border-0">
+                      <span class="text-xs font-mono text-gray-400">L${item.linha}</span>
+                      <span class="text-sm text-gray-700 flex-1">${item.nome}</span>
+                      <span class="text-xs text-gray-500">PN: ${item.pn} | PcD: ${item.pcd}</span>
+                  </div>
+              `,
+                  )
+                  .join(""),
+              );
+            }
+
+            if (qtdCotaMaior > 0) {
+              html += gerarItemInconsistencia(
+                CONFIG.TIPOS_INCONSISTENCIAS.ERROS_CRITICOS.LISTA_COTA_MAIOR
+                  .titulo,
+                qtdCotaMaior,
+                CONFIG.TIPOS_INCONSISTENCIAS.ERROS_CRITICOS.LISTA_COTA_MAIOR.id,
+                errosCriticos.listaCotaMaiorQueGeral
+                  .map(
+                    (item) => `
+                  <div class="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
+                      <span class="text-sm font-medium text-gray-700">${item.tipo}</span>
+                      <div class="flex items-center gap-3 text-xs text-gray-600">
+                          <span>${item.qtdCota} na cota</span>
+                          <span class="text-gray-400">vs</span>
+                          <span>${item.qtdGeral} na geral</span>
+                          <span class="font-semibold text-red-600">(+${item.diferenca})</span>
+                      </div>
+                  </div>
+              `,
+                  )
+                  .join(""),
+              );
+            }
+
+            if (qtdInvertidas > 0) {
+              html += gerarItemInconsistencia(
+                CONFIG.TIPOS_INCONSISTENCIAS.ERROS_CRITICOS
+                  .CLASSIFICACOES_INVERTIDAS.titulo,
+                qtdInvertidas,
+                CONFIG.TIPOS_INCONSISTENCIAS.ERROS_CRITICOS
+                  .CLASSIFICACOES_INVERTIDAS.id,
+                errosCriticos.classificacoesInvertidas
+                  .map(
+                    (item) => `
+                  <div class="py-3 border-b border-gray-100 last:border-0">
+                      <div class="flex items-baseline gap-2 mb-2">
+                          <span class="text-xs font-mono text-gray-400">L${item.linha}</span>
+                          <span class="text-sm font-medium text-gray-900">${item.candidato.nome}</span>
+                      </div>
+                      <div class="pl-10 space-y-1">
+                          ${item.problemas
+                            .map(
+                              (prob) => `
+                              <div class="text-xs text-gray-600">
+                                  <span class="font-medium">${prob.tipo}:</span>
+                                  Geral <strong>${prob.geralPos}º</strong> → Cota <strong class="text-red-600">${prob.cotaPos}º</strong>
+                                  <span class="text-gray-400">(+${prob.diferenca})</span>
+                              </div>
+                          `,
+                            )
+                            .join("")}
+                      </div>
+                  </div>
+              `,
+                  )
+                  .join(""),
+              );
+            }
+
+            if (qtdInversoesPN > 0 || qtdInversoesPcD > 0) {
+              let inversoesHTML = "";
+
+              if (qtdInversoesPN > 0) {
+                inversoesHTML += `<div class="mb-4"><div class="text-xs font-semibold text-gray-500 uppercase mb-2">Lista PN</div>`;
+                inversoesHTML += errosCriticos.inversoesOrdemPN
+                  .map(
+                    (inv) => `
+                  <div class="py-3 border-b border-gray-100 last:border-0">
+                      <div class="grid grid-cols-2 gap-3">
+                          <div class="flex flex-col">
+                              <span class="text-xs text-gray-400 mb-1">Candidato 1</span>
+                              <span class="text-xs font-mono text-gray-400">L${inv.candidato1.linha}</span>
+                              <span class="text-sm text-gray-900">${inv.candidato1.nome}</span>
+                              <span class="text-xs text-gray-500 mt-1">G: ${inv.candidato1.geral}º • PN: ${inv.candidato1.cota}º</span>
+                          </div>
+                          <div class="flex flex-col">
+                              <span class="text-xs text-gray-400 mb-1">Candidato 2</span>
+                              <span class="text-xs font-mono text-gray-400">L${inv.candidato2.linha}</span>
+                              <span class="text-sm text-gray-900">${inv.candidato2.nome}</span>
+                              <span class="text-xs text-red-600 mt-1">G: ${inv.candidato2.geral}º • PN: ${inv.candidato2.cota}º</span>
+                          </div>
+                      </div>
+                  </div>
+              `,
+                  )
+                  .join("");
+                inversoesHTML += `</div>`;
+              }
+
+              if (qtdInversoesPcD > 0) {
+                inversoesHTML += `<div><div class="text-xs font-semibold text-gray-500 uppercase mb-2">Lista PcD</div>`;
+                inversoesHTML += errosCriticos.inversoesOrdemPcD
+                  .map(
+                    (inv) => `
+                  <div class="py-3 border-b border-gray-100 last:border-0">
+                      <div class="grid grid-cols-2 gap-3">
+                          <div class="flex flex-col">
+                              <span class="text-xs text-gray-400 mb-1">Candidato 1</span>
+                              <span class="text-xs font-mono text-gray-400">L${inv.candidato1.linha}</span>
+                              <span class="text-sm text-gray-900">${inv.candidato1.nome}</span>
+                              <span class="text-xs text-gray-500 mt-1">G: ${inv.candidato1.geral}º • PcD: ${inv.candidato1.cota}º</span>
+                          </div>
+                          <div class="flex flex-col">
+                              <span class="text-xs text-gray-400 mb-1">Candidato 2</span>
+                              <span class="text-xs font-mono text-gray-400">L${inv.candidato2.linha}</span>
+                              <span class="text-sm text-gray-900">${inv.candidato2.nome}</span>
+                              <span class="text-xs text-red-600 mt-1">G: ${inv.candidato2.geral}º • PcD: ${inv.candidato2.cota}º</span>
+                          </div>
+                      </div>
+                  </div>
+              `,
+                  )
+                  .join("");
+                inversoesHTML += `</div>`;
+              }
+
+              html += gerarItemInconsistencia(
+                CONFIG.TIPOS_INCONSISTENCIAS.ERROS_CRITICOS.INVERSOES_ORDEM
+                  .titulo,
+                qtdInversoesPN + qtdInversoesPcD,
+                CONFIG.TIPOS_INCONSISTENCIAS.ERROS_CRITICOS.INVERSOES_ORDEM.id,
+                inversoesHTML,
+              );
+            }
+
+            html += `
+              </div>
+          </div>
+      `;
+          }
+
+          if (totalAvisos > 0) {
+            html += `
+        <div>
+            <div class="flex items-center gap-2 mb-4 pb-3 border-b border-gray-200">
+                <i data-lucide="alert-triangle" class="w-5 h-5 text-amber-600"></i>
+                  <h3 class="font-semibold text-gray-900">Avisos</h3>
+                  <span class="text-xs text-gray-500">(não impedem processamento)</span>
+              </div>
+              <div class="space-y-3">
+      `;
+
+            if (qtdSemNome > 0) {
+              html += gerarItemInconsistencia(
+                CONFIG.TIPOS_INCONSISTENCIAS.AVISOS.CANDIDATOS_SEM_NOME.titulo,
+                qtdSemNome,
+                CONFIG.TIPOS_INCONSISTENCIAS.AVISOS.CANDIDATOS_SEM_NOME.id,
+                avisos.candidatosSemNome
+                  .map(
+                    (item) => `
+                  <div class="flex items-center gap-3 py-2 border-b border-gray-100 last:border-0">
+                      <span class="text-xs font-mono text-gray-400">L${item.linha}</span>
+                      <div class="flex items-center gap-4 text-xs text-gray-600">
+                          <span>G: ${item.geral}</span>
+                          <span>PN: ${item.pn}</span>
+                          <span>PcD: ${item.pcd}</span>
+                      </div>
+                  </div>
+              `,
+                  )
+                  .join(""),
+                false,
+              );
+            }
+
+            const listaProblemas = [];
+
+            if (qtdDuplicatasGeral > 0 || qtdAusentesGeral > 0) {
+              listaProblemas.push({
+                nome: CONFIG.TIPOS_INCONSISTENCIAS.AVISOS.LISTA_GERAL.titulo,
+                id: CONFIG.TIPOS_INCONSISTENCIAS.AVISOS.LISTA_GERAL.id,
+                duplicatas: avisos.geral.duplicatas,
+                ausentes: avisos.geral.numerosAusentes,
+                qtdDup: qtdDuplicatasGeral,
+                qtdAus: qtdAusentesGeral,
+              });
+            }
+
+            if (qtdDuplicatasPN > 0 || qtdAusentesPN > 0) {
+              listaProblemas.push({
+                nome: CONFIG.TIPOS_INCONSISTENCIAS.AVISOS.LISTA_PN.titulo,
+                id: CONFIG.TIPOS_INCONSISTENCIAS.AVISOS.LISTA_PN.id,
+                duplicatas: avisos.pn.duplicatas,
+                ausentes: avisos.pn.numerosAusentes,
+                qtdDup: qtdDuplicatasPN,
+                qtdAus: qtdAusentesPN,
+              });
+            }
+
+            if (qtdDuplicatasPcD > 0 || qtdAusentesPcD > 0) {
+              listaProblemas.push({
+                nome: CONFIG.TIPOS_INCONSISTENCIAS.AVISOS.LISTA_PCD.titulo,
+                id: CONFIG.TIPOS_INCONSISTENCIAS.AVISOS.LISTA_PCD.id,
+                duplicatas: avisos.pcd.duplicatas,
+                ausentes: avisos.pcd.numerosAusentes,
+                qtdDup: qtdDuplicatasPcD,
+                qtdAus: qtdAusentesPcD,
+              });
+            }
+
+            listaProblemas.forEach((lista) => {
+              let detalhes = "";
+
+              if (lista.qtdDup > 0) {
+                const duplicatasAgrupadas = {};
+                lista.duplicatas.forEach((d) => {
+                  if (!duplicatasAgrupadas[d.numero])
+                    duplicatasAgrupadas[d.numero] = [];
+                  duplicatasAgrupadas[d.numero].push(d.candidato);
+                });
+
+                detalhes += `
+              <div class="mb-3">
+                  <div class="text-xs font-medium text-gray-500 mb-2">Repetidas (${lista.qtdDup})</div>
+                  <div class="flex flex-wrap gap-1.5">
+                      ${Object.keys(duplicatasAgrupadas)
+                        .sort((a, b) => parseInt(a) - parseInt(b))
+                        .map(
+                          (num) => `
+                          <span class="inline-flex items-center justify-center px-2 py-1 text-xs font-mono border border-gray-200 rounded">${num}</span>
+                      `,
+                        )
+                        .join("")}
+                  </div>
+              </div>
+          `;
+              }
+
+              if (lista.qtdAus > 0) {
+                detalhes += `
+              <div>
+                  <div class="text-xs font-medium text-gray-500 mb-2">Ausentes (${lista.qtdAus})</div>
+                  <div class="flex flex-wrap gap-1.5">
+                      ${lista.ausentes
+                        .slice(0, 20)
+                        .map(
+                          (num) => `
+                          <span class="inline-flex items-center justify-center px-2 py-1 text-xs font-mono border border-gray-200 rounded">${num}</span>
+                      `,
+                        )
+                        .join("")}
+                      ${
+                        lista.ausentes.length > 20
+                          ? `
+                          <span class="inline-flex items-center px-2 py-1 text-xs text-gray-400">+${lista.ausentes.length - 20} mais</span>
+                      `
+                          : ""
+                      }
+                  </div>
+              </div>
+          `;
+              }
+
+              html += gerarItemInconsistencia(
+                lista.nome,
+                lista.qtdDup + lista.qtdAus,
+                lista.id,
+                detalhes,
+                false,
+              );
+            });
+
+            html += `
+              </div>
+          </div>
+      `;
+          }
+
+          content.innerHTML = html;
+        }
+
+        document.getElementById("inconsistenciesModal").classList.remove("hidden");
+        ScrollManager.disable();
+        lucide.createIcons();
+      }
+
+      function gerarItemInconsistencia(
+        titulo,
+        quantidade,
+        id,
+        conteudoHTML,
+        isCritico = true,
+      ) {
+        return `
+    <div class="border border-gray-200 rounded-lg overflow-hidden">
+        <button 
+            onclick="toggleModalCollapse('${id}')" 
+            class="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-50 transition-colors"
+            aria-expanded="false"
+            aria-controls="collapse-modal-${id}"
+        >
+            <div class="flex items-center gap-3">
+                <span class="text-sm text-gray-700">${titulo}</span>
+                <span class="inline-flex items-center justify-center min-w-[24px] h-6 px-2 bg-gray-100 text-gray-700 rounded-full text-xs font-semibold">
+                    ${quantidade}
+                </span>
+            </div>
+            <i data-lucide="chevron-down" id="chevron-modal-${id}" class="w-4 h-4 text-gray-400 transition-transform" style="transform: rotate(-90deg);"></i>
+        </button>
+        <div id="collapse-modal-${id}" class="collapsible-content border-t border-gray-100">
+            <div class="px-4 py-3">
+                ${conteudoHTML}
+            </div>
+        </div>
+    </div>
+  `;
+      }
+
+      function closeInconsistenciesModal() {
+        const modal = document.getElementById("inconsistenciesModal");
+        modal.classList.add("closing");
+
+        setTimeout(() => {
+          modal.classList.remove("closing");
+          modal.classList.add("hidden");
+          ScrollManager.enable();
+          document.removeEventListener("keydown", handleModalKeydown);
+          document.removeEventListener(
+            "keydown",
+            handleInconsistenciesModalFocusTrap,
+          );
+
+          if (lastFocusedElement && lastFocusedElement.focus) {
+            setTimeout(() => {
+              lastFocusedElement.focus();
+              lastFocusedElement = null;
+            }, CONFIG.UI.FOCUS_DELAY);
+          }
+        }, CONFIG.UI.MODAL_TRANSITION_DELAY);
+      }
+
+      function handleModalKeydown(e) {
+        if (e.key === "Escape") {
+          closeInconsistenciesModal();
+        }
+      }
+
+      function handleInconsistenciesModalFocusTrap(e) {
+        if (e.key !== "Tab") return;
+
+        const modal = document.getElementById("inconsistenciesModal");
+        if (modal.classList.contains("hidden")) return;
+
+        const focusableElements = modal.querySelectorAll(
+          'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"]):not([disabled])',
+        );
+
+        const firstElement = focusableElements[0];
+        const lastElement = focusableElements[focusableElements.length - 1];
+
+        if (e.shiftKey && document.activeElement === firstElement) {
+          e.preventDefault();
+          lastElement.focus();
+        } else if (!e.shiftKey && document.activeElement === lastElement) {
+          e.preventDefault();
+          firstElement.focus();
+        }
+      }
+
+      // ============================================
+      // MODAL DE CONFIRMAÇÃO
+      // ============================================
+
+      function showConfirmation(title, message, options = {}) {
+        return UIManager.confirmation.show(title, message, options);
+      }
+
+      function closeConfirmation() {
+        UIManager.confirmation.close();
+      }
+
+      // ============================================
+      // PADRÃO DE DISTRIBUIÇÃO
+      // ============================================
+
+      function setupPatternButtons() {
+        const processBtn = document.getElementById('processBtn');
+        if (processBtn) {
+          processBtn.addEventListener('click', processar);
+        }
+      }
+
+      function initTooltips() {
+        document.querySelectorAll('.tooltip-trigger').forEach(el => {
+          if (el._tippy) {
+            el._tippy.destroy();
+          }
+        });
+        
+        tippy('.tooltip-trigger', {
+          theme: 'custom',
+          placement: 'top',
+          arrow: true,
+          animation: 'fade',
+          duration: [200, 150],
+          appendTo: document.body,
+          popperOptions: {
+            modifiers: [
+              {
+                name: 'preventOverflow',
+                options: {
+                  boundary: 'viewport',
+                },
+              },
+            ],
+          },
+        });
+      }
+
+      // ============================================
+      // GERENCIAMENTO DE BLOCOS
+      // ============================================
+
+      let blocoEmEdicao = null;
+
+      // ============================================
+      // VARIÁVEL GLOBAL PARA BLOCO SELECIONADO
+      // ============================================
+
+      let blocoSelecionadoId = null;
+
+      // ============================================
+      // RENDER MASTER-DETAIL
+      // ============================================
+
+      function renderBlocosMasterDetail() {
+        const listaMaster = document.getElementById('blocosListaMaster');
+        const estadoVazio = document.getElementById('editorEstadoVazio');
+        const editorConteudo = document.getElementById('editorBlocoConteudo');
+
+        // Se não há blocos, mostra estado vazio especial
+        if (blocosDistribuicao.length === 0) {
+          listaMaster.innerHTML = `
+            <div class="text-center py-12 px-4">
+              <div class="inline-flex items-center justify-center w-12 h-12 bg-gray-100 rounded-full mb-3">
+                <i data-lucide="inbox" class="w-6 h-6 text-gray-400"></i>
+              </div>
+              <p class="text-sm text-gray-600 mb-4">Nenhum bloco criado</p>
+              <button
+                onclick="adicionarBloco()"
+                class="w-full px-4 py-2 bg-gray-900 text-white rounded-lg text-sm font-medium hover:bg-gray-800 flex items-center justify-center gap-2"
+              >
+                <i data-lucide="plus" class="w-4 h-4"></i>
+                Adicionar Bloco
+              </button>
+            </div>
+          `;
+          estadoVazio.classList.remove('hidden');
+          editorConteudo.classList.add('hidden');
+          lucide.createIcons();
+          return;
+        }
+
+        // Se havia um bloco selecionado mas foi removido, mantém a mesma posição ou seleciona o último
+        if (blocoSelecionadoId && !blocosDistribuicao.find(b => b.id === blocoSelecionadoId)) {
+          const indiceAjustado = Math.min(ultimoIndiceBlocoSelecionado, blocosDistribuicao.length - 1);
+          blocoSelecionadoId = blocosDistribuicao[indiceAjustado].id;
+        }
+
+        // Se nenhum bloco está selecionado, seleciona o primeiro
+        if (!blocoSelecionadoId && blocosDistribuicao.length > 0) {
+          blocoSelecionadoId = blocosDistribuicao[0].id;
+        }
+
+        renderListaBlocos();
+
+        renderEditorBloco();
+
+        lucide.createIcons();
+        setTimeout(initTooltips, 100);
+      }
+
+      function renderListaBlocos() {
+        const listaMaster = document.getElementById('blocosListaMaster');
+
+        listaMaster.innerHTML = blocosDistribuicao.map((bloco, index) => {
+          const totalVagas = BlocoHelper.contarVagasBloco(bloco);
+          const rangeTexto = BlocoHelper.calcularRangeBloco(bloco, index, blocosDistribuicao);
+          const isSelected = bloco.id === blocoSelecionadoId;
+
+          return `
+            <button
+              onclick="selecionarBloco(${bloco.id})"
+              class="w-full text-left p-4 rounded-lg border transition-all ${
+                isSelected 
+                  ? 'border-2 border-gray-900 shadow-sm' 
+                  : 'border-main hover:bg-gray-50'
+              }"
+              style="${isSelected ? 'background-color: #f1f2f3;' : ''}"
+            >
+              <div class="flex items-center gap-3">
+                <div class="flex items-center justify-center w-8 h-8 bg-gray-900 text-white rounded-lg text-sm font-bold flex-shrink-0">
+                  ${index + 1}
+                </div>
+                <div class="flex-1 min-w-0">
+                  <h4 class="text-sm font-semibold text-gray-900 mb-1 truncate">${rangeTexto}</h4>
+                  <div class="text-xs text-gray-600">
+                    ${totalVagas} vagas/ciclo
+                  </div>
+                </div>
+                ${isSelected ? '<div class="ml-2"><i data-lucide="check" class="w-4 h-4 text-gray-900"></i></div>' : ''}
+              </div>
+            </button>
+          `;
+        }).join('');
+
+        lucide.createIcons();
+      }
+
+      function renderEditorBloco() {
+        const bloco = blocosDistribuicao.find(b => b.id === blocoSelecionadoId);
+        
+        if (!bloco) {
+          document.getElementById('editorEstadoVazio').classList.remove('hidden');
+          document.getElementById('editorBlocoConteudo').classList.add('hidden');
+          return;
+        }
+
+        document.getElementById('editorEstadoVazio').classList.add('hidden');
+        document.getElementById('editorBlocoConteudo').classList.remove('hidden');
+
+        const blocoIndex = blocosDistribuicao.findIndex(b => b.id === blocoSelecionadoId);
+        const numeroBloco = blocoIndex + 1;
+        const totalVagas = BlocoHelper.contarVagasBloco(bloco);
+        const rangeTexto = BlocoHelper.calcularRangeBloco(bloco, blocoIndex, blocosDistribuicao);
+
+        document.getElementById('editorBlocoNumero').textContent = numeroBloco;
+        document.getElementById('editorBlocoNome').textContent = rangeTexto;
+        document.getElementById('editorBlocoInfo').textContent = `${totalVagas} vagas por ciclo`;
+
+        const btnRemover = document.getElementById('editorRemoverBloco');
+        if (btnRemover) {
+          if (blocoIndex > 0) {
+            btnRemover.classList.remove('hidden');
+          } else {
+            btnRemover.classList.add('hidden');
+          }
+        }
+
+        // renderEditorMetas(bloco);
+
+        renderEditorAplicacao(bloco, blocoIndex);
+
+        renderEditorPreviewPadrao(bloco);
+
+        lucide.createIcons();
+        setTimeout(initTooltips, 100);
+      }
+
+      function renderEditorMetas(bloco) {
+        const container = document.getElementById('editorMetas');
+
+        if (!container) return;
+        
+        container.innerHTML = getCotasDisponiveis().map(tipo => {
+          const cotaConfig = getCotaConfig(tipo);
+          return `
+            <div class="group">
+              <label class="flex items-center gap-1.5 mb-2">
+                <span class="text-xs font-semibold text-gray-700">${tipo}</span>
+                <span class="tooltip-trigger cursor-help inline-flex" data-tippy-content="${cotaConfig.descricao}">
+                  <i data-lucide="info" class="w-3.5 h-3.5 text-gray-400"></i>
+                </span>
+              </label>
+              <div class="relative">
+                <input
+                  type="number"
+                  min="0"
+                  max="100"
+                  value="${bloco.percentuais[tipo]}"
+                  onchange="alterarPercentualBloco(${bloco.id}, '${tipo}', this.value)"
+                  class="w-full pl-3 pr-10 py-2.5 border border-gray-300 rounded-lg text-sm font-medium "
+                />
+                <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm font-semibold pointer-events-none">%</span>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        validarPercentuaisEditor(bloco);
+      }
+
+      function renderEditorAplicacao(bloco, blocoIndex) {
+        let posicaoInicio = 1;
+        for (let i = 0; i < blocoIndex; i++) {
+          if (blocosDistribuicao[i].quantidadeTotal) {
+            posicaoInicio = blocosDistribuicao[i].quantidadeTotal + 1;
+          }
+        }
+
+        document.getElementById('editorPosicaoInicio').textContent = posicaoInicio;
+        
+        const inputPosicaoFim = document.getElementById('editorPosicaoFim');
+        
+        const isUltimoBloco = blocoIndex === blocosDistribuicao.length - 1;
+        
+        if (isUltimoBloco) {
+          inputPosicaoFim.value = '';
+          inputPosicaoFim.setAttribute('readonly', 'readonly');
+          inputPosicaoFim.setAttribute('tabindex', '-1');
+          inputPosicaoFim.setAttribute('placeholder', '∞ (todos os restantes)');
+
+          inputPosicaoFim.classList.remove('placeholder:text-gray-400');
+          inputPosicaoFim.classList.add(
+            'bg-gray-50',
+            'text-gray-900',
+            'font-semibold',
+            'cursor-not-allowed',
+            'pointer-events-none'
+          );
+        } else {
+          inputPosicaoFim.value = bloco.quantidadeTotal || '';
+          inputPosicaoFim.removeAttribute('readonly');
+          inputPosicaoFim.removeAttribute('tabindex');
+          inputPosicaoFim.setAttribute('placeholder', '∞ (restante)');
+          
+          inputPosicaoFim.classList.add('placeholder:text-gray-400');
+          inputPosicaoFim.classList.remove(
+            'bg-gray-50',
+            'text-gray-900',
+            'font-semibold',
+            'cursor-not-allowed',
+            'pointer-events-none'
+          );
+        }
+      }
+
+      function renderEditorPreviewPadrao(bloco) {
+        const container = document.getElementById('editorPreviewPadrao');
+        
+        if (!bloco.padrao || bloco.padrao.length === 0) {
+          container.innerHTML = '<span class="text-sm text-gray-400 italic">Padrão vazio</span>';
+          return;
+        }
+
+        let html = '';
+        bloco.padrao.forEach(regra => {
+          const cotaConfig = getCotaConfig(regra.tipo);
+          for (let i = 0; i < regra.repeticoes; i++) {
+            html += `
+              <span class="inline-flex items-center justify-center w-10 h-10 ${cotaConfig.cor.bg} ${cotaConfig.cor.text} border ${cotaConfig.cor.border} rounded-lg text-xs font-bold">
+                ${regra.tipo}
+              </span>
+            `;
+          }
+        });
+        
+        container.innerHTML = html;
+      }
+
+      function validarPercentuaisEditor(bloco) {
+        const resultado = ValidationManager.validarPercentuais(bloco.percentuais);
+        const validationDiv = document.getElementById('editorPercentValidation');
+        
+        if (!validationDiv) return;
+
+        if (resultado.valido) {
+          validationDiv.className = 'mt-3 p-2 rounded-lg text-xs bg-green-50 border border-green-200 text-green-800';
+          validationDiv.innerHTML = `<div class="flex items-center gap-2"><i data-lucide="check-circle" class="w-3 h-3"></i><span>Total: ${resultado.total}% - Válido</span></div>`;
+          validationDiv.classList.remove('hidden');
+        } else {
+          validationDiv.className = 'mt-3 p-2 rounded-lg text-xs bg-red-50 border border-red-200 text-red-800';
+          validationDiv.innerHTML = `<div class="flex items-center gap-2"><i data-lucide="alert-circle" class="w-3 h-3"></i><span>Total: ${resultado.total}% - Deve ser 100%</span></div>`;
+          validationDiv.classList.remove('hidden');
+        }
+        
+        lucide.createIcons();
+      }
+
+      function selecionarBloco(blocoId) {
+        blocoSelecionadoId = blocoId;
+        renderBlocosMasterDetail();
+      }
+
+      function renderBlocos() {
+        renderBlocosMasterDetail();
+      }
+
+      // ============================================
+      // SETUP EVENTOS MASTER-DETAIL
+      // ============================================
+
+      function setupMasterDetail() {
+        const addBlocoBtn = document.getElementById('addBlocoMaster');
+        const resetBlocosBtn = document.getElementById('resetBlocosMaster');
+        const editorResetBtn = document.getElementById('editorResetBloco');
+        const editorRemoverBtn = document.getElementById('editorRemoverBloco');
+        const editorPosicaoFim = document.getElementById('editorPosicaoFim');
+        const editorEditarPadrao = document.getElementById('editorEditarPadrao');
+
+        if (addBlocoBtn) {
+          addBlocoBtn.addEventListener('click', adicionarBloco);
+        }
+
+        if (resetBlocosBtn) {
+          resetBlocosBtn.addEventListener('click', resetBlocos);
+        }
+
+        if (editorResetBtn) {
+          editorResetBtn.addEventListener('click', () => {
+            if (blocoSelecionadoId) resetBloco(blocoSelecionadoId);
+          });
+        }
+
+        if (editorRemoverBtn) {
+          editorRemoverBtn.addEventListener('click', () => {
+            if (blocoSelecionadoId) removerBloco(blocoSelecionadoId);
+          });
+        }
+
+        if (editorPosicaoFim) {
+          editorPosicaoFim.addEventListener('change', (e) => {
+            if (e.target.hasAttribute('readonly')) return;
+            
+            if (blocoSelecionadoId) alterarLimiteBloco(blocoSelecionadoId, e.target.value);
+          });
+        }
+
+        if (editorEditarPadrao) {
+          editorEditarPadrao.addEventListener('click', () => {
+            if (blocoSelecionadoId) editarBloco(blocoSelecionadoId);
+          });
+        }
+      }
+
+      function resetBloco(blocoId) {
+        showConfirmation(
+          "Restaurar Padrão do Bloco",
+          "Deseja restaurar as configurações padrão deste bloco?\n\nIsso irá resetar:\n• Percentuais de distribuição\n• Padrão de vagas\n• Limite de posições",
+          {
+            type: "warning",
+            confirmText: "Sim, Restaurar",
+            cancelText: "Cancelar",
+          },
+        ).then((confirmed) => {
+          if (confirmed) {
+            const bloco = blocosDistribuicao.find((b) => b.id === blocoId);
+            if (bloco) {
+              const fontePadrao = (typeof CONFIG_PADRAO_INICIAL !== 'undefined' && CONFIG_PADRAO_INICIAL.blocos)
+                ? CONFIG_PADRAO_INICIAL.blocos[0]
+                : CONFIG.BLOCOS_DISTRIBUICAO_DEFAULT[0];
+              bloco.percentuais = { ...CONFIG.PERCENTUAIS_PADRAO };
+              bloco.padrao = JSON.parse(JSON.stringify(fontePadrao.padrao));
+              bloco.quantidadeTotal = null;
+              
+              renderBlocos();
+              showToast("Bloco restaurado para o padrão", "success");
+            }
+          }
+        });
+      }
+
+      // ============================================
+      // MODAL DE EDIÇÃO DE PADRÃO
+      // ============================================
+
+      let padraoTemporario = [];
+
+      function editarBloco(blocoId) {
+        const blocoIndex = blocosDistribuicao.findIndex(b => b.id === blocoId);
+        const bloco = blocosDistribuicao[blocoIndex];
+        
+        if (!bloco) return;
+
+        blocoEmEdicao = blocoId;
+        padraoTemporario = JSON.parse(JSON.stringify(bloco.padrao));
+
+        const numeroBloco = blocoIndex + 1;
+        const rangeTexto = BlocoHelper.calcularRangeBloco(bloco, blocoIndex, blocosDistribuicao);
+        document.getElementById('editPatternBlocoNome').textContent = `Bloco ${numeroBloco} • ${rangeTexto}`;
+
+        renderModalPattern();
+        analisarPadraoModal();
+
+        document.getElementById('editPatternModal').classList.remove('hidden');
+        ScrollManager.disable();
+        lucide.createIcons();
+
+        setupModalPatternButtons();
+      }
+
+      function closeEditPatternModal() {
+        const modal = document.getElementById('editPatternModal');
+        modal.classList.add('closing');
+
+        setTimeout(() => {
+          modal.classList.remove('closing');
+          modal.classList.add('hidden');
+          ScrollManager.enable();
+          blocoEmEdicao = null;
+          padraoTemporario = [];
+        }, CONFIG.UI.MODAL_TRANSITION_DELAY);
+      }
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          const modal = document.getElementById('editPatternModal');
+          if (!modal.classList.contains('hidden')) {
+            closeEditPatternModal();
+          }
+        }
+      });
+
+      function setupModalPatternButtons() {
+        // Remove listeners antigos
+        const btnAC = document.getElementById('modalAddAC');
+        const btnPN = document.getElementById('modalAddPN');
+        const btnPcD = document.getElementById('modalAddPcD');
+
+        btnAC.replaceWith(btnAC.cloneNode(true));
+        btnPN.replaceWith(btnPN.cloneNode(true));
+        btnPcD.replaceWith(btnPcD.cloneNode(true));
+
+        // Adiciona novos listeners
+        document.getElementById('modalAddAC').addEventListener('click', () => adicionarVagaModal('AC'));
+        document.getElementById('modalAddPN').addEventListener('click', () => adicionarVagaModal('PN'));
+        document.getElementById('modalAddPcD').addEventListener('click', () => adicionarVagaModal('PcD'));
+      }
+
+      function adicionarVagaModal(tipo) {
+        padraoTemporario.push({ tipo, repeticoes: 1 });
+        renderModalPattern();
+        analisarPadraoModal();
+      }
+
+      function removerVagaModal(index) {
+        const items = [...document.getElementById('modalPatternContainer').children];
+        if (items.length <= CONFIG.VALIDACAO.MIN_VAGAS_PADRAO) {
+          showAlert(CONFIG.MENSAGENS.ERRO.MIN_VAGAS, 'error');
+          return;
+        }
+        items[index].remove();
+        atualizarPadraoModalDePosicoes();
+        analisarPadraoModal();
+      }
+
+      function renderModalPattern() {
+        const container = document.getElementById('modalPatternContainer');
+        container.innerHTML = '';
+        
+        if (padraoTemporario.length === 0) {
+          container.innerHTML = `
+            <div class="col-span-full text-center py-8 text-gray-400">
+              <i data-lucide="inbox" class="w-8 h-8 mx-auto mb-2"></i>
+              <p class="text-sm">Nenhuma vaga no padrão</p>
+            </div>
+          `;
+          lucide.createIcons();
+          return;
+        }
+
+        let posicao = 1, globalIndex = 0;
+        
+        padraoTemporario.forEach(regra => {
+          for (let i = 0; i < regra.repeticoes; i++) {
+            const item = document.createElement('div');
+            item.draggable = true;
+            item.tabIndex = 0;
+            item.dataset.tipo = regra.tipo;
+            item.dataset.globalIndex = globalIndex;
+
+            const cotaConfig = getCotaConfig(regra.tipo);
+            const colorClass = `${cotaConfig.cor.bg} ${cotaConfig.cor.text} ${cotaConfig.cor.border}`;
+
+            item.className = 'flex flex-col items-center gap-1 cursor-move';
+            item.setAttribute('role', 'button');
+            item.setAttribute('aria-label', `Vaga ${posicao}, tipo ${cotaConfig.nome}`);
+            
+            item.innerHTML = `
+              <div class="text-lg font-bold text-gray-900">${posicao}ª</div>
+              <div class="${colorClass} border-2 rounded-lg p-3 relative w-full bloco-modal">
+                <button 
+                  class="absolute top-1 right-1 w-5 h-5 bg-white rounded-full flex items-center justify-center hover:bg-gray-100 text-gray-900" 
+                  onclick="removerVagaModal(${globalIndex})" 
+                  aria-label="Remover vaga ${posicao}"
+                >
+                  <i data-lucide="x" class="w-3 h-3" aria-hidden="true"></i>
+                </button>
+                <div class="text-xs font-medium text-gray-600 mb-1">${posicao}ª</div>
+                <div class="text-lg font-bold">${regra.tipo}</div>
+              </div>
+            `;
+
+            item.addEventListener('dragstart', handleModalDragStart);
+            item.addEventListener('dragover', handleModalDragOver);
+            item.addEventListener('drop', handleModalDrop);
+            item.addEventListener('dragend', handleModalDragEnd);
+            
+            container.appendChild(item);
+            posicao++;
+            globalIndex++;
+          }
+        });
+        
+        lucide.createIcons();
+      }
+
+      // Handlers de Drag and Drop do Modal
+      let modalDraggedElement = null;
+
+      function handleModalDragStart(e) {
+        modalDraggedElement = e.target;
+        e.target.classList.add('dragging');
+      }
+
+      function handleModalDragOver(e) {
+        e.preventDefault();
+        const target = e.target.closest('[draggable="true"]');
+        if (target && target !== modalDraggedElement) {
+          target.classList.add('drag-over');
+        }
+      }
+
+      function handleModalDrop(e) {
+        e.preventDefault();
+        const target = e.target.closest('[draggable="true"]');
+        if (target && target !== modalDraggedElement) {
+          const container = document.getElementById('modalPatternContainer');
+          const allItems = [...container.children];
+          const draggedIdx = allItems.indexOf(modalDraggedElement);
+          const targetIdx = allItems.indexOf(target);
+          
+          if (draggedIdx < targetIdx) {
+            target.parentNode.insertBefore(modalDraggedElement, target.nextSibling);
+          } else {
+            target.parentNode.insertBefore(modalDraggedElement, target);
+          }
+          
+          atualizarPadraoModalDePosicoes();
+          analisarPadraoModal();
+        }
+        document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+      }
+
+      function handleModalDragEnd(e) {
+        e.target.classList.remove('dragging');
+        document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+      }
+
+      function atualizarPadraoModalDePosicoes() {
+        const items = [...document.getElementById('modalPatternContainer').children];
+        const novoPadrao = [];
+        
+        items.forEach(item => {
+          const tipo = item.dataset.tipo;
+          const ultimo = novoPadrao[novoPadrao.length - 1];
+          if (ultimo && ultimo.tipo === tipo) {
+            ultimo.repeticoes++;
+          } else {
+            novoPadrao.push({ tipo, repeticoes: 1 });
+          }
+        });
+        
+        padraoTemporario = novoPadrao;
+        renderModalPattern();
+      }
+
+      function analisarPadraoModal() {
+        const bloco = blocosDistribuicao.find(b => b.id === blocoEmEdicao);
+        if (!bloco) return;
+
+        const totalVagas = padraoTemporario.reduce((sum, p) => sum + p.repeticoes, 0);
+
+        const contadores = {};
+        getCotasDisponiveis().forEach(tipo => {
+          contadores[tipo] = padraoTemporario
+            .filter(p => p.tipo === tipo)
+            .reduce((sum, p) => sum + p.repeticoes, 0);
+        });
+
+        const percentuaisAtuais = {};
+        getCotasDisponiveis().forEach(tipo => {
+          percentuaisAtuais[tipo] = ((contadores[tipo] / totalVagas) * 100).toFixed(1);
+        });
+
+        function getStatusColor(atual, esperado) {
+          const diff = Math.abs(parseFloat(atual) - esperado);
+          if (diff < CONFIG.VALIDACAO.DIFERENCA_PADRAO_AVISO)
+            return { bg: 'bg-green-50', border: 'border-green-600', text: 'text-green-700', icon: 'check-circle' };
+          if (diff < CONFIG.VALIDACAO.DIFERENCA_PADRAO_CRITICO)
+            return { bg: 'bg-amber-50', border: 'border-amber-600', text: 'text-amber-700', icon: 'alert-circle' };
+          return { bg: 'bg-red-50', border: 'border-red-600', text: 'text-red-700', icon: 'alert-triangle' };
+        }
+
+        let statsHTML = '';
+        getCotasDisponiveis().forEach(tipo => {
+          const cotaConfig = getCotaConfig(tipo);
+          const status = getStatusColor(percentuaisAtuais[tipo], bloco.percentuais[tipo]);
+
+          statsHTML += `
+            <div class="p-3 ${status.bg} border ${status.border} rounded-lg">
+              <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center gap-1.5 min-w-0 flex-1">
+                  <span class="text-xs font-medium text-gray-600">
+                    ${cotaConfig.nome} (${tipo})
+                  </span>
+                </div>
+                <i data-lucide="${status.icon}" class="w-4 h-4 ${status.text} flex-shrink-0"></i>
+              </div>
+              <div class="text-2xl font-bold ${status.text}">${percentuaisAtuais[tipo]}%</div>
+              <div class="text-xs text-gray-600 mt-1">${contadores[tipo]}/${totalVagas} • Meta: ${bloco.percentuais[tipo]}%</div>
+            </div>
+          `;
+        });
+
+        document.getElementById('modalPatternStats').innerHTML = statsHTML;
+        lucide.createIcons();
+        setTimeout(initTooltips, 100);
+      }
+
+      function salvarPadraoBloco() {
+        if (padraoTemporario.length === 0) {
+          showAlert('O padrão não pode estar vazio', 'error');
+          return;
+        }
+
+        const bloco = blocosDistribuicao.find(b => b.id === blocoEmEdicao);
+        if (!bloco) return;
+
+        bloco.padrao = JSON.parse(JSON.stringify(padraoTemporario));
+        renderBlocos();
+        closeEditPatternModal();
+        showToast('Padrão salvo com sucesso', 'success');
+      }
+
+      function renderPreviewPadrao(padrao) {
+        if (!padrao || padrao.length === 0) {
+          return '<span class="text-sm text-gray-400 italic">Padrão vazio</span>';
+        }
+
+        let html = '';
+        padrao.forEach(regra => {
+          const cotaConfig = getCotaConfig(regra.tipo);
+          for (let i = 0; i < regra.repeticoes; i++) {
+            html += `
+              <span class="inline-flex items-center justify-center w-10 h-10 ${cotaConfig.cor.bg} ${cotaConfig.cor.text} border ${cotaConfig.cor.border} rounded-lg text-xs font-bold">
+                ${regra.tipo}
+              </span>
+            `;
+          }
+        });
+        return html;
+      }
+
+      function adicionarBloco() {
+        if (blocosDistribuicao.length === 0) {
+          const fonte = (typeof CONFIG_PADRAO_INICIAL !== 'undefined' && CONFIG_PADRAO_INICIAL.blocos)
+            ? CONFIG_PADRAO_INICIAL
+            : { blocos: CONFIG.BLOCOS_DISTRIBUICAO_DEFAULT };
+          blocosDistribuicao = JSON.parse(JSON.stringify(fonte.blocos));
+          blocoSelecionadoId = blocosDistribuicao[0].id;
+          renderBlocos();
+          showToast('Bloco principal criado', 'success');
+          return;
+        }
+
+        if (blocosDistribuicao.length > 0) {
+          const ultimoBloco = blocosDistribuicao[blocosDistribuicao.length - 1];
+          
+          if (!ultimoBloco.quantidadeTotal) {
+            const totalVagasUltimoBloco = BlocoHelper.contarVagasBloco(ultimoBloco);
+            
+            let limiteAnterior = 0;
+            if (blocosDistribuicao.length > 1) {
+              const penultimoBloco = blocosDistribuicao[blocosDistribuicao.length - 2];
+              limiteAnterior = penultimoBloco.quantidadeTotal || 0;
+            }
+            
+            ultimoBloco.quantidadeTotal = limiteAnterior + totalVagasUltimoBloco;
+          }
+        }
+        
+        const novoBloco = BlocoHelper.criarBloco();
+        
+        if (blocosDistribuicao.length > 0) {
+          novoBloco.padrao = JSON.parse(JSON.stringify(blocosDistribuicao[0].padrao));
+          novoBloco.percentuais = { ...blocosDistribuicao[0].percentuais };
+        }
+        
+        blocosDistribuicao.push(novoBloco);
+        blocoSelecionadoId = novoBloco.id;
+        renderBlocos();
+        showToast('Bloco adicionado com sucesso', 'success');
+      }
+
+      function removerBloco(blocoId) {
+        const blocoIndex = blocosDistribuicao.findIndex(b => b.id === blocoId);
+        const bloco = blocosDistribuicao[blocoIndex];
+        const numeroBloco = blocoIndex + 1;
+
+        if (blocoIndex === 0) {
+          showAlert('O primeiro bloco não pode ser removido. Use "Restaurar Padrão" para resetar as configurações.', 'info');
+          return;
+        }
+
+        const rangeTexto = BlocoHelper.calcularRangeBloco(bloco, blocoIndex, blocosDistribuicao);
+
+        showConfirmation(
+          'Remover Bloco',
+          `Tem certeza que deseja remover o Bloco ${numeroBloco} (${rangeTexto})?`,
+          { type: 'warning', confirmText: 'Sim, Remover', cancelText: 'Cancelar' }
+        ).then(confirmed => {
+          if (confirmed) {
+            ultimoIndiceBlocoSelecionado = blocoIndex;            
+            blocosDistribuicao = blocosDistribuicao.filter(b => b.id !== blocoId);
+            renderBlocos();
+            showToast('Bloco removido', 'info');
+          }
+        });
+      }
+
+      function alterarLimiteBloco(blocoId, valor) {
+        const bloco = blocosDistribuicao.find(b => b.id === blocoId);
+        if (bloco) {
+          bloco.quantidadeTotal = valor ? parseInt(valor) : null;
+          renderBlocos();
+        }
+      }
+
+      function atualizarValidacaoEditor(bloco) {
+        const resultado = ValidationManager.validarPercentuais(bloco.percentuais);
+        const validationDiv = document.getElementById('editorPercentValidation');
+        
+        if (!validationDiv) return;
+
+        if (resultado.valido) {
+          validationDiv.className = 'mt-3 p-2 rounded-lg text-xs bg-green-50 border border-green-200 text-green-800';
+          validationDiv.innerHTML = `<div class="flex items-center gap-2"><i data-lucide="check-circle" class="w-3 h-3"></i><span>Total: ${resultado.total}% - Válido</span></div>`;
+          validationDiv.classList.remove('hidden');
+        } else {
+          validationDiv.className = 'mt-3 p-2 rounded-lg text-xs bg-red-50 border border-red-200 text-red-800';
+          validationDiv.innerHTML = `<div class="flex items-center gap-2"><i data-lucide="alert-circle" class="w-3 h-3"></i><span>Total: ${resultado.total}% - Deve ser 100%</span></div>`;
+          validationDiv.classList.remove('hidden');
+        }
+        
+        lucide.createIcons();
+      }
+
+      function alterarPercentualBloco(blocoId, tipo, valor) {
+        const bloco = blocosDistribuicao.find(b => b.id === blocoId);
+        if (bloco) {
+          bloco.percentuais[tipo] = parseFloat(valor) || 0;
+          atualizarValidacaoEditor(bloco);
+        }
+      }
+
+      function validarPercentuaisBloco(blocoId) {
+        const bloco = blocosDistribuicao.find(b => b.id === blocoId);
+        if (!bloco) return;
+
+        const resultado = ValidationManager.validarPercentuais(bloco.percentuais);
+        const validationDiv = document.getElementById(`percentValidation-${blocoId}`);
+        
+        if (!validationDiv) return;
+
+        if (resultado.valido) {
+          validationDiv.className = 'mt-2 p-2 rounded-lg text-xs bg-green-50 border border-green-200 text-green-800';
+          validationDiv.innerHTML = `<div class="flex items-center gap-2"><i data-lucide="check-circle" class="w-3 h-3"></i><span>Total: ${resultado.total}% - Válido</span></div>`;
+        } else {
+          validationDiv.className = 'mt-2 p-2 rounded-lg text-xs bg-red-50 border border-red-200 text-red-800';
+          validationDiv.innerHTML = `<div class="flex items-center gap-2"><i data-lucide="alert-circle" class="w-3 h-3"></i><span>Total: ${resultado.total}% - Deve ser 100%</span></div>`;
+        }
+        lucide.createIcons();
+      }
+
+      function resetBlocos() {
+        showConfirmation(
+          'Restaurar Padrão',
+          'Deseja restaurar a configuração padrão de blocos definida pelo administrador?',
+          { type: 'warning', confirmText: 'Sim, Restaurar', cancelText: 'Cancelar' }
+        ).then(confirmed => {
+          if (confirmed) {
+            blocosDistribuicao = JSON.parse(JSON.stringify(CONFIG_PADRAO_INICIAL.blocos));
+            blocoSelecionadoId = blocosDistribuicao.length > 0 ? blocosDistribuicao[0].id : null;
+            renderBlocos();
+            showToast('Configuração restaurada', 'success');
+          }
+        });
+      }
+
+      function adicionarVaga(tipo) {
+        padraoAtual.push({ tipo, repeticoes: 1 });
+        renderPadrao();
+        analisarPadrao();
+      }
+
+      function removerVaga(index) {
+        const items = [...document.getElementById("patternContainer").children];
+        if (items.length <= CONFIG.VALIDACAO.MIN_VAGAS_PADRAO) {
+          showAlert(CONFIG.MENSAGENS.ERRO.MIN_VAGAS, "error");
+          return;
+        }
+        items[index].remove();
+        atualizarPadraoDePosicoes();
+        analisarPadrao();
+      }
+
+      function resetPadrao() {
+        const fonte = (typeof CONFIG_PADRAO_INICIAL !== 'undefined' && CONFIG_PADRAO_INICIAL.blocos)
+          ? CONFIG_PADRAO_INICIAL
+          : { blocos: CONFIG.BLOCOS_DISTRIBUICAO_DEFAULT };
+        blocosDistribuicao = JSON.parse(JSON.stringify(fonte.blocos));
+        blocoSelecionadoId = blocosDistribuicao.length > 0 ? blocosDistribuicao[0].id : null;
+        renderBlocos();
+      }
+
+      // ============================================
+      // CARREGAMENTO DE CONFIGURAÇÃO DO BACKEND
+      // ============================================
+
+      function carregarConfigPadraoDoBackend() {
+        // Config embutida pelo servidor em tempo de render — sem round trip
+        try {
+          const config = CONFIG_PADRAO_INICIAL;
+          if (config && config.blocos) {
+            blocosDistribuicao = JSON.parse(JSON.stringify(config.blocos));
+            blocoSelecionadoId = blocosDistribuicao.length > 0 ? blocosDistribuicao[0].id : null;
+          } else {
+            resetPadrao();
+          }
+        } catch (error) {
+          console.error('Erro ao aplicar config inicial:', error);
+          resetPadrao();
+        }
+        renderBlocos();
+      }
+
+      function renderPadrao() {
+        const container = document.getElementById("patternContainer");
+        container.innerHTML = "";
+        let posicao = 1,
+          globalIndex = 0;
+        padraoAtual.forEach((regra) => {
+          for (let i = 0; i < regra.repeticoes; i++) {
+            const item = document.createElement("div");
+            item.draggable = true;
+            item.tabIndex = 0;
+            item.dataset.tipo = regra.tipo;
+            item.dataset.globalIndex = globalIndex;
+
+            const cotaConfig = getCotaConfig(regra.tipo);
+            const colorClass = `${cotaConfig.cor.bg} ${cotaConfig.cor.text} ${cotaConfig.cor.border}`;
+
+            item.className = `${colorClass} border-2 rounded-lg p-3 cursor-move hover:shadow-md transition-shadow relative`;
+            item.setAttribute("role", "button");
+            item.setAttribute(
+              "aria-label",
+              `Vaga ${posicao}, tipo ${cotaConfig.nome}`,
+            );
+            item.innerHTML = `
+          <button class="absolute top-1 right-1 w-5 h-5 bg-white rounded-full flex items-center justify-center hover:bg-red-50 text-red-600" onclick="removerVaga(${globalIndex})" aria-label="Remover vaga ${posicao}">
+              <i data-lucide="x" class="w-3 h-3" aria-hidden="true"></i>
+          </button>
+          <div class="text-xs font-medium text-gray-500 mb-1" aria-hidden="true">${posicao}ª</div>
+          <div class="text-lg font-bold">${regra.tipo}</div>
+      `;
+            item.addEventListener("dragstart", handleDragStart);
+            item.addEventListener("dragover", handleDragOver);
+            item.addEventListener("drop", handleDrop);
+            item.addEventListener("dragend", handleDragEnd);
+            container.appendChild(item);
+            posicao++;
+            globalIndex++;
+          }
+        });
+        lucide.createIcons();
+      }
+
+      let draggedElement = null;
+      function handleDragStart(e) {
+        draggedElement = e.target;
+        e.target.classList.add("dragging");
+      }
+      function handleDragOver(e) {
+        e.preventDefault();
+        const target = e.target.closest('[draggable="true"]');
+        if (target && target !== draggedElement)
+          target.classList.add("drag-over");
+      }
+      function handleDrop(e) {
+        e.preventDefault();
+        const target = e.target.closest('[draggable="true"]');
+        if (target && target !== draggedElement) {
+          const container = document.getElementById("patternContainer");
+          const allItems = [...container.children];
+          const draggedIdx = allItems.indexOf(draggedElement);
+          const targetIdx = allItems.indexOf(target);
+          if (draggedIdx < targetIdx) {
+            target.parentNode.insertBefore(draggedElement, target.nextSibling);
+          } else {
+            target.parentNode.insertBefore(draggedElement, target);
+          }
+          atualizarPadraoDePosicoes();
+          analisarPadrao();
+        }
+        document
+          .querySelectorAll(".drag-over")
+          .forEach((el) => el.classList.remove("drag-over"));
+      }
+      function handleDragEnd(e) {
+        e.target.classList.remove("dragging");
+        document
+          .querySelectorAll(".drag-over")
+          .forEach((el) => el.classList.remove("drag-over"));
+      }
+
+      function atualizarPadraoDePosicoes() {
+        const items = [...document.getElementById("patternContainer").children];
+        const novoPadrao = [];
+        items.forEach((item) => {
+          const tipo = item.dataset.tipo;
+          const ultimo = novoPadrao[novoPadrao.length - 1];
+          if (ultimo && ultimo.tipo === tipo) {
+            ultimo.repeticoes++;
+          } else {
+            novoPadrao.push({ tipo, repeticoes: 1 });
+          }
+        });
+        padraoAtual = novoPadrao;
+        renderPadrao();
+      }
+
+      function analisarPadrao() {
+        const totalVagas = padraoAtual.reduce(
+          (sum, p) => sum + p.repeticoes,
+          0,
+        );
+
+        const contadores = {};
+        getCotasDisponiveis().forEach((tipo) => {
+          contadores[tipo] = padraoAtual
+            .filter((p) => p.tipo === tipo)
+            .reduce((sum, p) => sum + p.repeticoes, 0);
+        });
+
+        const percentuaisAtuais = {};
+        getCotasDisponiveis().forEach((tipo) => {
+          percentuaisAtuais[tipo] = (
+            (contadores[tipo] / totalVagas) *
+            100
+          ).toFixed(1);
+        });
+
+        function getStatusColor(atual, esperado) {
+          const diff = Math.abs(parseFloat(atual) - esperado);
+          if (diff < CONFIG.VALIDACAO.DIFERENCA_PADRAO_AVISO)
+            return {
+              bg: "bg-green-50",
+              border: "border-green-200",
+              text: "text-green-700",
+              icon: "check-circle",
+            };
+          if (diff < CONFIG.VALIDACAO.DIFERENCA_PADRAO_CRITICO)
+            return {
+              bg: "bg-amber-50",
+              border: "border-amber-200",
+              text: "text-amber-700",
+              icon: "alert-circle",
+            };
+          return {
+            bg: "bg-red-50",
+            border: "border-red-200",
+            text: "text-red-700",
+            icon: "alert-triangle",
+          };
+        }
+
+        let statsHTML = "";
+        getCotasDisponiveis().forEach((tipo) => {
+          const cotaConfig = getCotaConfig(tipo);
+          const status = getStatusColor(
+            percentuaisAtuais[tipo],
+            percentuais[tipo],
+          );
+
+          statsHTML += `
+              <div class="p-3 ${status.bg} border ${status.border} rounded-lg">
+                  <div class="flex items-center justify-between mb-2">
+                      <div class="flex items-center gap-1.5 min-w-0 flex-1">
+                        <span class="text-xs font-medium text-gray-600">
+                          ${cotaConfig.nome} (${tipo})
+                        </span>
+                      </div>
+                      <i data-lucide="${status.icon}" class="w-4 h-4 ${status.text} flex-shrink-0"></i>
+                  </div>
+                  <div class="text-2xl font-bold ${status.text}">${percentuaisAtuais[tipo]}%</div>
+                  <div class="text-xs text-gray-600 mt-1">${contadores[tipo]}/${totalVagas} • Meta: ${percentuais[tipo]}%</div>
+              </div>
+            `;
+        });
+
+        document.getElementById("patternStats").innerHTML = statsHTML;
+        lucide.createIcons();
+        setTimeout(initTooltips, 100);
+      }
+
+      // ============================================
+      // PROCESSAMENTO
+      // ============================================
+
+      function processar() {
+        if (todosOsCandidatos.length === 0) {
+          showAlert(CONFIG.MENSAGENS.ERRO.NENHUM_CANDIDATO_PROCESSAR, 'error');
+          return;
+        }
+
+        const validacaoBlocos = ValidationManager.validarBlocos(blocosDistribuicao);
+        if (!validacaoBlocos.valido) {
+          showConfirmation(
+            'Erro na Configuração de Blocos',
+            validacaoBlocos.mensagem,
+            {
+              type: 'error',
+              confirmText: 'Entendi',
+              cancelText: null,
+            },
+          );
+          return;
+        }
+
+        const todosAvisos = [];
+
+        if (validacaoBlocos.avisos && validacaoBlocos.avisos.length > 0) {
+          todosAvisos.push(...validacaoBlocos.avisos);
+        }
+
+        const ultimoBloco = blocosDistribuicao[blocosDistribuicao.length - 1];
+        if (ultimoBloco.quantidadeTotal !== null) {
+          const numeroBloco = blocosDistribuicao.length;
+          const range = BlocoHelper.calcularRangeBloco(ultimoBloco, numeroBloco - 1, blocosDistribuicao);
+          const totalCandidatos = todosOsCandidatos.length;
+          const posicaoLimite = ultimoBloco.quantidadeTotal;
+          const candidatosForaDoLimite = Math.max(0, totalCandidatos - posicaoLimite);
+
+          if (candidatosForaDoLimite > 0) {
+            const avisoUltimoBloco = `Último bloco com limite definido:\n\nO Bloco ${numeroBloco} (${range}) possui um limite de posições. Candidatos a partir da posição ${posicaoLimite + 1} não serão processados.\n\nTotal de candidatos: ${totalCandidatos}\nPosições que serão processadas: ${posicaoLimite}\nCandidatos que ficarão de fora: ${candidatosForaDoLimite}`;
+            todosAvisos.push(avisoUltimoBloco);
+          }
+        }
+
+        if (todosAvisos.length > 0) {
+          const mensagemAvisos = todosAvisos.join('\n\n---\n\n');
+          showConfirmation(
+            'Avisos de Configuração',
+            `Os seguintes avisos foram detectados:\n\n${mensagemAvisos}\n\nDeseja continuar mesmo assim?`,
+            {
+              type: 'warning',
+              confirmText: 'Sim, Continuar',
+              cancelText: 'Cancelar',
+            },
+          ).then((confirmed) => {
+            if (confirmed) {
+              continuarProcessamento();
+            }
+          });
+          return;
+        }
+
+        continuarProcessamento();
+      }
+
+      function continuarProcessamento() {
+        for (let bloco of blocosDistribuicao) {
+          const resultadoValidacao = ValidationManager.validarPercentuais(bloco.percentuais);
+          if (!resultadoValidacao.valido) {
+            const numeroBloco = blocosDistribuicao.indexOf(bloco) + 1;
+            const range = BlocoHelper.calcularRangeBloco(bloco, numeroBloco - 1, blocosDistribuicao);
+            const totalAtual = Object.values(bloco.percentuais).reduce((a,b) => a+b, 0).toFixed(1);
+            
+            showConfirmation(
+              'Erro nos Percentuais',
+              `Bloco ${numeroBloco} (${range}):\n\nOs percentuais de distribuição devem somar exatamente 100%.\n\nTotal atual: ${totalAtual}%\n\nAjuste os valores na seção "Metas de Distribuição".`,
+              {
+                type: 'error',
+                confirmText: 'Entendi',
+                cancelText: null,
+              },
+            );
+            return;
+          }
+        }
+
+        const validacaoPadrao = ValidationManager.validarPadraoBlocos(blocosDistribuicao);
+
+        if (!validacaoPadrao.valido) {
+          if (validacaoPadrao.critico) {
+            showConfirmation(
+              'Erro ao Processar',
+              validacaoPadrao.mensagem,
+              {
+                type: 'error',
+                confirmText: 'Entendi',
+                cancelText: null,
+              },
+            );
+            return;
+          } else {
+            const conf = CONFIG.MENSAGENS.CONFIRMACAO.PADRAO_DISTANTE;
+            showConfirmation(
+              conf.titulo,
+              conf.mensagem(validacaoPadrao.mensagem),
+              {
+                type: 'warning',
+                confirmText: 'Sim, Continuar',
+                cancelText: 'Cancelar',
+              },
+            ).then((confirmed) => {
+              if (confirmed) {
+                executarProcessamento();
+              }
+            });
+            return;
+          }
+        }
+
+        executarProcessamento();
+      }
+
+      function executarProcessamento() {
+        showLoading();
+        setTimeout(() => {
+          try {
+            resultadoFinal = ClassificationEngine.reclassificar(
+              todosOsCandidatos,
+              blocosDistribuicao,
+            );
+
+            exibirResultado(resultadoFinal);
+            enableTab('resultado');
+            switchTab('resultado');
+            showAlert(
+              CONFIG.MENSAGENS.SUCESSO.PROCESSAMENTO_CONCLUIDO(
+                resultadoFinal.length,
+              ),
+              'success',
+            );
+          } catch (error) {
+            showAlert(
+              CONFIG.MENSAGENS.ERRO.PROCESSAMENTO(error.message),
+              'error',
+            );
+          } finally {
+            hideLoading();
+          }
+        }, CONFIG.UI.PROCESSAMENTO_DELAY);
+      }
+
+      // ============================================
+      // EXIBIÇÃO DE RESULTADOS
+      // ============================================
+
+      function exibirResultado(resultado) {
+        const estatisticas =
+          ClassificationEngine.calcularEstatisticas(resultado);
+
+        // Card de Total
+        let statsHTML = `
+            <div class="bg-white rounded-lg shadow-sm border border-main p-4">
+                <div class="flex items-start gap-1 mb-2 min-h-[44px]">
+                    <i data-lucide="users" class="w-4 h-4 text-gray-500 flex-shrink-0 mt-0.5" aria-hidden="true"></i>
+                    <span class="text-sm font-medium text-gray-500 leading-snug">Total</span>
+                </div>
+                <div class="text-3xl font-bold text-gray-900">${estatisticas.total}</div>
+                <div class="text-xs text-gray-500 mt-1 truncate" title="${nomeArquivoOriginal}">${nomeArquivoOriginal}</div>
+            </div>
+        `;
+
+        // Cards por tipo de cota
+        getCotasDisponiveis().forEach((tipo) => {
+          const cotaConfig = getCotaConfig(tipo);
+
+          statsHTML += `
+              <div class="bg-white rounded-lg shadow-sm border border-main p-4">
+                  <div class="flex items-start gap-1 mb-2 min-h-[44px]">
+                      <svg class="w-4 h-4 ${cotaConfig.cor.icon} flex-shrink-0 mt-0.5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="12" r="10"/></svg>
+                      <div class="flex items-center gap-1 flex-1">
+                        <span class="text-sm font-medium text-gray-500 leading-snug">
+                          ${cotaConfig.nome} (${tipo})
+                        </span>
+                        <span class="tooltip-trigger cursor-help inline-flex flex-shrink-0" data-tippy-content="${cotaConfig.descricao}">
+                          <i data-lucide="info" class="w-3 h-3 text-gray-400" aria-hidden="true"></i>
+                        </span>
+                      </div>
+                  </div>
+                  <div class="text-3xl font-bold text-gray-900">${estatisticas.contadores[tipo]}</div>
+                  <div class="text-xs text-gray-500 mt-1">${estatisticas.percentuais[tipo]}%</div>
+              </div>
+            `;
+        });
+
+        document.getElementById("statsContainer").innerHTML = statsHTML;
+
+        // Tabela de resultados
+        const tbody = document.querySelector("#resultTable tbody");
+        tbody.innerHTML = resultado
+          .map((r) => {
+            const cotaConfig = getCotaConfig(r.tipoVaga);
+            return `
+            <tr class="hover:bg-gray-50">
+                <td class="px-6 py-4 whitespace-nowrap"><span class="text-sm font-semibold text-gray-900">${r.posicao}º</span></td>
+                <td class="px-6 py-4"><span class="text-sm ${r.nome === CONFIG.LABELS.NOME_NAO_INFORMADO ? "text-gray-400 italic" : "text-gray-900"}">${r.nome}</span></td>
+                <td class="px-6 py-4 whitespace-nowrap"><span class="text-sm text-gray-700">${r.classificacaoGeral}</span></td>
+                <td class="px-6 py-4 whitespace-nowrap"><span class="px-2.5 py-1 rounded-full text-xs font-medium ${cotaConfig.cor.badge}">${r.tipoVaga}</span></td>
+            </tr>
+        `;
+          })
+          .join("");
+        lucide.createIcons();
+        setTimeout(initTooltips, 100);
+
+        popularInformacoesPrint(estatisticas);
+      }
+
+      function popularInformacoesPrint(estatisticas) {
+        document.getElementById('printFileName').textContent = nomeArquivoOriginal;
+        
+        const hoje = new Date();
+        const dataFormatada = hoje.toLocaleDateString('pt-BR', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric'
+        });
+        document.getElementById('printDate').textContent = `Data: ${dataFormatada}`;
+        
+        let statsHTML = '';
+        
+        statsHTML += `
+          <div class="print-stat-card">
+            <span class="print-stat-label">Total de Candidatos</span>
+            <span class="print-stat-value">${estatisticas.total}</span>
+          </div>
+        `;
+        
+        getCotasDisponiveis().forEach((tipo) => {
+          const cotaConfig = getCotaConfig(tipo);
+          statsHTML += `
+            <div class="print-stat-card">
+              <span class="print-stat-label">${tipo}</span>
+              <span class="print-stat-value">${estatisticas.contadores[tipo]}</span>
+              <span class="print-stat-percent">${estatisticas.percentuais[tipo]}%</span>
+            </div>
+          `;
+        });
+        
+        document.getElementById('printStatsGrid').innerHTML = statsHTML;
+      }
+
+      function downloadResultado() {
+        FileManager.exportarResultadoCSV(resultadoFinal);
+      }
+
+      function imprimirResultado() {
+        window.print();
+      }
+
+      function executarReset() {
+        todosOsCandidatos = [];
+        resultadoFinal = [];
+        nomeArquivoOriginal = "";
+        inconsistenciasCache = { duplicatas: [], numerosAusentes: [] };
+        percentuais = { ...CONFIG.PERCENTUAIS_PADRAO };
+        UIManager.tabs.reset();
+
+        getCotasDisponiveis().forEach((tipo) => {
+          document.getElementById(`percent${tipo}`).value =
+            CONFIG.PERCENTUAIS_PADRAO[tipo];
+        });
+
+        UIManager.elements.hide("fileInfo");
+        UIManager.elements.hide("uploadActions");
+        UIManager.elements.hide("btnCheckInconsistencies");
+
+        document.getElementById("fileInput").value = "";
+        resetPadrao();
+        switchTab("upload");
+      }
+    </script>
+  </body>
+</html>

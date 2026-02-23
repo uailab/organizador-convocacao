@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <base target="_top">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Acesso Negado</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+  </head>
+  <body class="bg-gray-50 min-h-screen flex items-center justify-center p-4">
+    
+    <div class="max-w-md w-full">
+      <!-- Card Principal -->
+      <div class="bg-white rounded-lg shadow-xl border border-gray-200 overflow-hidden">
+        
+        <!-- Header com Ícone -->
+        <div class="bg-gradient-to-r from-red-50 to-orange-50 px-6 py-8 text-center border-b border-red-100">
+          <div class="inline-flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mb-4">
+            <i data-lucide="shield-alert" class="w-8 h-8 text-red-600"></i>
+          </div>
+          <h1 class="text-2xl font-bold text-gray-900 mb-2">Acesso Restrito</h1>
+          <p class="text-sm text-gray-600">Esta área é exclusiva para administradores</p>
+        </div>
+        
+        <!-- Conteúdo -->
+        <div class="px-6 py-6">
+          <div class="mb-6">
+            <div class="flex items-start gap-3 mb-4">
+              <i data-lucide="info" class="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5"></i>
+              <div>
+                <h3 class="text-sm font-semibold text-gray-900 mb-1">Por que estou vendo isso?</h3>
+                <p class="text-sm text-gray-600">Apenas o proprietário desta ferramenta pode acessar as configurações administrativas.</p>
+              </div>
+            </div>
+            
+            <div class="flex items-start gap-3">
+              <i data-lucide="user-check" class="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5"></i>
+              <div>
+                <h3 class="text-sm font-semibold text-gray-900 mb-1">Você pode usar a ferramenta normalmente</h3>
+                <p class="text-sm text-gray-600">Clique no botão abaixo para acessar a ferramenta pública de organização de convocação.</p>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Botão de Ação -->
+          <a 
+            id="btnPublico" 
+            href="#"
+            target="_top"
+            class="w-full px-6 py-3 bg-gray-900 text-white rounded-lg font-medium hover:bg-gray-800 flex items-center justify-center gap-2 transition-colors no-underline"
+          >
+            <i data-lucide="arrow-left" class="w-4 h-4"></i>
+            Ir para a Ferramenta
+          </a>
+        </div>
+        
+        <!-- Footer -->
+        <div class="px-6 py-4 bg-gray-50 border-t border-gray-200">
+          <p class="text-xs text-center text-gray-500">
+            Se você acredita que deveria ter acesso, entre em contato com o administrador do sistema.
+          </p>
+        </div>
+        
+      </div>
+      
+      <!-- Link Secundário -->
+      <div class="text-center mt-4">
+        <a 
+          id="linkPublico"
+          href="#" 
+          target="_top"
+          class="text-sm text-gray-600 hover:text-gray-900 hover:underline"
+        >
+          Ou clique aqui para acessar diretamente
+        </a>
+      </div>
+    </div>
+
+    <script>
+      // Inicializar ícones
+      lucide.createIcons();
+      
+      // Carregar link público
+      google.script.run
+        .withSuccessHandler((info) => {
+          document.getElementById('btnPublico').href = info.publicUrl;
+          document.getElementById('linkPublico').href = info.publicUrl;
+        })
+        .withFailureHandler((error) => {
+          console.error('Erro ao carregar link:', error);
+          // Fallback: tentar URL base
+          const baseUrl = window.location.href.split('?')[0];
+          document.getElementById('btnPublico').href = baseUrl;
+          document.getElementById('linkPublico').href = baseUrl;
+        })
+        .getEnvironmentInfo();
+    </script>
+  </body>
+</html>
