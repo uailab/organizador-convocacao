@@ -753,43 +753,12 @@
             </div>
           </div>
 
-          <!-- Botões de Adicionar Vagas -->
-          <div class="mb-4">
-            <label class="block text-sm font-semibold text-gray-900 mb-1 pt-2">
-              Adicionar vagas ao padrão
-            </label>
-            <p class="text-xs text-gray-600 mb-3">Clique no tipo de vaga abaixo para adicioná-la ao padrão do bloco</p>
-            <div class="flex gap-2 bg-gray-50 border border-gray-200 rounded-lg p-3">
-              <button
-                id="modalAddAC"
-                class="px-3 py-1 bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 text-sm font-medium flex items-center gap-1"
-              >
-                <i data-lucide="plus" class="w-4 h-4"></i>
-                AC
-              </button>
-              <button
-                id="modalAddPN"
-                class="px-3 py-1 bg-amber-100 text-amber-700 rounded-md hover:bg-amber-200 text-sm font-medium flex items-center gap-1"
-              >
-                <i data-lucide="plus" class="w-4 h-4"></i>
-                PN
-              </button>
-              <button
-                id="modalAddPcD"
-                class="px-3 py-1 bg-purple-100 text-purple-700 rounded-md hover:bg-purple-200 text-sm font-medium flex items-center gap-1"
-              >
-                <i data-lucide="plus" class="w-4 h-4"></i>
-                PcD
-              </button>
-            </div>
-          </div>
-
           <!-- Container do Padrão -->
           <div>
             <label class="block text-sm font-semibold text-gray-900 mb-1 pt-2">
               Padrão do bloco (se repete ciclicamente):
             </label>
-            <p class="text-xs text-gray-600 mb-3">Clique e arraste o bloco da vaga para alterar sua posição. Clique no <strong>X</strong> para removê-la</p>
+            <p class="text-xs text-gray-600 mb-3">Clique e arraste o bloco da vaga para reorganizar a sequência do padrão</p>
             <div
               id="modalPatternContainer"
               class="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-8 gap-2 mb-4 min-h-[100px] p-4 border border-gray-200 rounded-lg bg-gray-50"
@@ -831,7 +800,7 @@
       <div class="max-w-6xl mx-auto px-4 py-4 md:py-6">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-4">
-            <!-- Logo SVG (TJMG) -->
+            <!-- Logo SVG (TJIMG) -->
             <svg class="w-20 md:w-32 h-auto block" viewBox="0 0 1600 510" version="1.1" xmlns="http://www.w3.org/2000/svg" aria-label="Logo TJIMG">
               <g>
                 <path fill="#e30713" d=" M 265.93 21.88 C 267.32 19.61 268.74 16.53 271.91 16.71 C 283.64 16.68 295.37 16.54 307.10 16.79 C 304.29 23.20 300.12 28.86 296.84 35.02 C 246.98 119.50 197.05 203.94 147.30 288.48 C 120.74 332.94 94.72 377.73 68.08 422.14 C 103.35 427.69 138.43 435.02 174.07 437.91 C 222.43 443.99 271.36 445.19 319.98 442.04 C 350.44 440.00 380.69 435.62 411.05 432.45 C 393.03 438.93 374.22 442.63 355.70 447.36 C 313.52 457.77 270.21 462.60 227.00 466.37 C 214.35 467.03 201.66 466.36 189.00 466.83 C 181.03 467.74 173.00 467.28 165.00 467.39 C 156.33 467.36 147.64 467.60 139.01 466.70 C 121.13 466.91 103.30 465.52 85.49 464.19 C 60.39 461.81 35.29 459.13 10.40 455.06 C 46.43 392.74 83.60 331.07 119.91 268.91 C 136.47 241.93 151.90 214.28 168.30 187.21 C 200.90 132.13 233.28 76.93 265.93 21.88 Z" />
@@ -4287,12 +4256,18 @@
         const inputPosicaoFim = document.getElementById('editorPosicaoFim');
         
         const isUltimoBloco = blocoIndex === blocosDistribuicao.length - 1;
-        
-        if (isUltimoBloco) {
-          inputPosicaoFim.value = '';
+        const isPrimeiroBloco = blocoIndex === 0;
+        const isBloqueado = isPrimeiroBloco || isUltimoBloco;
+
+        if (isBloqueado) {
+          inputPosicaoFim.value = isPrimeiroBloco && bloco.quantidadeTotal
+            ? bloco.quantidadeTotal
+            : '';
           inputPosicaoFim.setAttribute('readonly', 'readonly');
           inputPosicaoFim.setAttribute('tabindex', '-1');
-          inputPosicaoFim.setAttribute('placeholder', '∞ (todos os restantes)');
+          inputPosicaoFim.setAttribute('placeholder', isPrimeiroBloco
+            ? (bloco.quantidadeTotal ? String(bloco.quantidadeTotal) : '∞ (todos os restantes)')
+            : '∞ (todos os restantes)');
 
           inputPosicaoFim.classList.remove('placeholder:text-gray-400');
           inputPosicaoFim.classList.add(
@@ -4307,7 +4282,7 @@
           inputPosicaoFim.removeAttribute('readonly');
           inputPosicaoFim.removeAttribute('tabindex');
           inputPosicaoFim.setAttribute('placeholder', '∞ (restante)');
-          
+
           inputPosicaoFim.classList.add('placeholder:text-gray-400');
           inputPosicaoFim.classList.remove(
             'bg-gray-50',
@@ -4563,13 +4538,6 @@
             item.innerHTML = `
               <div class="text-lg font-bold text-gray-900">${posicao}ª</div>
               <div class="${colorClass} border-2 rounded-lg p-3 relative w-full bloco-modal">
-                <button 
-                  class="absolute top-1 right-1 w-5 h-5 bg-white rounded-full flex items-center justify-center hover:bg-gray-100 text-gray-900" 
-                  onclick="removerVagaModal(${globalIndex})" 
-                  aria-label="Remover vaga ${posicao}"
-                >
-                  <i data-lucide="x" class="w-3 h-3" aria-hidden="true"></i>
-                </button>
                 <div class="text-xs font-medium text-gray-600 mb-1">${posicao}ª</div>
                 <div class="text-lg font-bold">${regra.tipo}</div>
               </div>
@@ -5369,7 +5337,8 @@
         switchTab("upload");
       }
     </script>
-    
+
+    <!-- Rodapé -->
     <footer class="py-2 px-4">
       <p class="text-center text-xs text-gray-400">
         Desenvolvido por Unidade Avançada de Inovação em Laboratório - UAILAB
