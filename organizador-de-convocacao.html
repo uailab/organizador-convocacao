@@ -11,6 +11,9 @@
     <!-- Tippy.js -->
     <script src="https://unpkg.com/@popperjs/core@2"></script>
     <script src="https://unpkg.com/tippy.js@6"></script>
+
+    <!-- SheetJS - Suporte a XLS/XLSX -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
       .dragging {
         opacity: 0.5;
@@ -567,7 +570,7 @@
       const ADMIN_URL_INICIAL = "<?!= adminUrlInicial ?>";
     </script>
   </head>
-  <body class="bg-gray-50 min-h-screen">
+  <body class="flex flex-col min-h-screen bg-gray-50">
     <!-- Toast Container -->
     <div
       id="toastContainer"
@@ -825,15 +828,30 @@
 
     <!-- Header -->
     <header class="bg-white border-b border-gray-200">
-      <div class="max-w-6xl mx-auto px-4 py-6">
+      <div class="max-w-6xl mx-auto px-4 py-4 md:py-6">
         <div class="flex items-center justify-between">
-          <div class="flex items-center gap-3">
-            <i data-lucide="list-checks" class="w-8 h-8 text-gray-700"></i>
+          <div class="flex items-center gap-4">
+            <!-- Logo SVG (TJIMG) -->
+            <svg class="w-20 md:w-32 h-auto block" viewBox="0 0 1600 510" version="1.1" xmlns="http://www.w3.org/2000/svg" aria-label="Logo TJIMG">
+              <g>
+                <path fill="#e30713" d=" M 265.93 21.88 C 267.32 19.61 268.74 16.53 271.91 16.71 C 283.64 16.68 295.37 16.54 307.10 16.79 C 304.29 23.20 300.12 28.86 296.84 35.02 C 246.98 119.50 197.05 203.94 147.30 288.48 C 120.74 332.94 94.72 377.73 68.08 422.14 C 103.35 427.69 138.43 435.02 174.07 437.91 C 222.43 443.99 271.36 445.19 319.98 442.04 C 350.44 440.00 380.69 435.62 411.05 432.45 C 393.03 438.93 374.22 442.63 355.70 447.36 C 313.52 457.77 270.21 462.60 227.00 466.37 C 214.35 467.03 201.66 466.36 189.00 466.83 C 181.03 467.74 173.00 467.28 165.00 467.39 C 156.33 467.36 147.64 467.60 139.01 466.70 C 121.13 466.91 103.30 465.52 85.49 464.19 C 60.39 461.81 35.29 459.13 10.40 455.06 C 46.43 392.74 83.60 331.07 119.91 268.91 C 136.47 241.93 151.90 214.28 168.30 187.21 C 200.90 132.13 233.28 76.93 265.93 21.88 Z" />
+                <path fill="#e30713" d=" M 315.34 22.44 C 315.66 22.42 316.30 22.37 316.62 22.35 C 319.59 26.48 321.77 31.11 324.43 35.43 C 357.51 91.60 390.96 147.56 424.08 203.71 C 463.69 270.77 503.54 337.69 543.03 404.83 C 545.76 409.10 548.14 413.57 550.63 417.99 C 544.55 429.03 537.95 439.77 531.82 450.78 C 511.49 417.47 492.18 383.55 472.19 350.04 C 421.48 264.31 370.94 178.49 320.58 92.56 C 319.12 90.01 317.46 87.59 315.87 85.13 C 314.03 87.96 312.15 90.75 310.51 93.70 C 300.89 110.57 290.27 126.84 280.53 143.63 C 249.66 196.63 218.03 249.18 186.81 301.98 C 177.94 317.65 168.13 332.77 159.32 348.47 C 144.84 372.96 130.27 397.38 115.63 421.77 C 104.69 420.58 94.04 417.49 83.13 416.11 C 85.66 410.48 88.99 405.26 92.02 399.88 C 101.88 383.76 111.05 367.22 120.86 351.06 C 171.91 264.94 222.54 178.57 273.68 92.50 C 278.53 83.53 283.88 74.85 289.12 66.11 C 297.96 51.62 306.13 36.68 315.34 22.44 Z" />
+                <path fill="#e30713" d=" M 299.73 128.54 C 305.15 119.48 310.53 110.37 316.02 101.36 C 320.61 109.82 325.81 117.97 330.46 126.41 C 348.84 157.11 366.74 188.10 385.01 218.86 C 395.70 236.57 405.80 254.62 416.48 272.34 C 448.86 327.03 480.89 381.94 513.24 436.65 C 517.20 443.46 521.24 450.23 524.87 457.22 C 485.26 468.82 444.85 478.12 403.80 482.70 C 377.52 486.85 351.02 489.67 324.45 490.94 C 313.99 492.09 303.42 491.05 292.96 492.24 C 276.32 492.50 259.67 492.58 243.04 492.17 C 234.40 491.04 225.64 492.07 217.00 490.85 C 186.68 489.94 156.47 486.62 126.40 482.59 C 115.30 481.37 104.19 480.05 93.22 477.91 C 89.19 477.12 85.00 476.70 81.29 474.83 C 87.88 474.04 94.38 476.04 101.00 475.64 C 112.41 477.18 123.98 475.99 135.40 477.40 C 151.26 477.59 167.13 477.48 183.00 477.45 C 190.81 477.61 198.57 476.58 206.35 475.99 C 222.16 474.87 238.02 474.41 253.77 472.50 C 276.63 470.14 299.46 467.20 322.05 462.92 C 340.68 459.63 359.07 455.13 377.53 450.97 C 407.69 443.99 437.49 434.50 465.01 420.16 C 461.64 412.26 456.64 405.21 452.31 397.84 C 431.37 362.09 409.95 326.63 389.14 290.82 C 361.54 244.72 334.51 198.28 307.08 152.08 C 304.11 146.73 300.75 141.61 297.90 136.20 C 296.31 133.54 298.59 130.87 299.73 128.54 Z" />
+              </g>
+              <g>
+                <path fill="#1e1e1c" d=" M 1395.49 125.41 C 1415.74 117.79 1437.44 114.75 1459.00 114.36 C 1478.82 114.18 1498.86 115.55 1518.06 120.77 C 1535.43 125.56 1552.34 133.99 1564.46 147.62 C 1576.21 161.37 1582.72 179.51 1582.66 197.57 C 1559.28 197.56 1535.90 197.52 1512.52 197.60 C 1511.37 188.26 1507.90 178.70 1500.30 172.69 C 1486.58 161.58 1467.89 159.00 1450.79 160.80 C 1433.18 162.41 1415.75 170.58 1405.04 184.97 C 1395.52 196.37 1392.59 211.43 1390.24 225.68 C 1388.87 231.70 1389.83 237.92 1388.95 244.00 C 1388.24 247.67 1389.44 251.31 1389.36 254.99 C 1389.14 264.12 1391.25 273.12 1393.69 281.86 C 1397.44 294.09 1403.98 305.83 1414.14 313.87 C 1425.84 322.82 1440.39 327.46 1454.94 328.90 C 1474.60 331.17 1494.25 327.58 1513.38 323.29 C 1514.76 322.78 1517.49 323.13 1517.29 320.93 C 1517.77 307.67 1517.34 294.39 1517.38 281.12 C 1498.46 281.32 1479.54 281.22 1460.62 281.21 C 1463.51 274.05 1468.19 267.82 1471.80 261.03 C 1476.74 251.96 1482.48 243.34 1487.41 234.28 C 1519.15 234.08 1550.91 234.24 1582.66 234.27 C 1582.68 276.47 1582.50 318.67 1582.76 360.87 C 1559.00 369.39 1534.02 373.73 1509.01 376.48 C 1486.97 378.47 1464.75 379.05 1442.69 377.11 C 1421.47 375.13 1400.20 370.53 1381.03 360.95 C 1366.45 353.39 1353.06 343.09 1343.27 329.81 C 1329.39 311.93 1323.55 289.22 1321.57 267.04 C 1321.65 259.35 1319.80 251.68 1321.17 244.01 C 1321.82 213.55 1329.25 181.90 1348.74 157.78 C 1361.13 143.15 1377.53 132.05 1395.49 125.41 Z" />
+                <path fill="#1e1e1c" d=" M 566.46 123.77 C 567.31 122.52 567.99 120.36 569.91 120.63 C 638.97 120.62 708.03 120.58 777.09 120.65 C 767.12 138.71 756.86 156.65 746.39 174.43 C 745.49 176.53 742.93 176.28 741.07 176.30 C 723.58 176.16 706.09 176.44 688.61 176.16 C 688.41 242.35 688.60 308.56 688.63 374.76 C 666.61 374.72 644.59 374.89 622.57 374.68 C 622.74 308.48 622.70 242.28 622.47 176.08 C 599.66 176.55 576.82 176.14 554.00 176.26 C 548.30 176.05 542.50 176.85 536.89 175.50 C 541.10 168.54 545.02 161.41 549.06 154.36 C 554.72 144.08 560.97 134.15 566.46 123.77 Z" />
+                <path fill="#1e1e1c" d=" M 837.67 121.35 C 842.39 120.40 847.21 120.78 851.99 120.74 C 869.20 120.72 886.40 120.77 903.60 120.72 C 903.63 173.48 903.51 226.24 903.49 279.00 C 903.31 288.67 904.13 298.42 902.62 308.03 C 900.81 325.16 893.72 342.13 881.08 354.08 C 868.61 366.62 851.28 373.05 834.07 375.65 C 827.45 376.94 820.68 376.54 814.00 377.29 C 802.21 377.04 790.30 376.52 778.86 373.38 C 761.99 369.16 745.71 359.48 736.85 344.11 C 727.16 328.45 724.91 309.52 725.74 291.46 C 747.33 291.30 768.93 291.38 790.52 291.42 C 790.26 298.52 791.36 305.62 793.27 312.45 C 794.80 317.96 798.57 323.00 804.07 325.00 C 812.86 328.24 824.29 327.09 830.49 319.44 C 835.71 312.81 836.35 304.02 837.45 295.98 C 838.02 273.32 837.58 250.66 837.72 228.00 C 837.66 192.45 837.84 156.89 837.67 121.35 Z" />
+                <path fill="#1e1e1c" d=" M 970.46 121.10 C 988.95 120.35 1007.49 120.98 1026.00 120.77 C 1034.44 121.00 1042.94 120.25 1051.34 121.25 C 1059.06 146.37 1067.49 171.29 1075.57 196.30 C 1087.81 234.82 1100.29 273.26 1112.89 311.65 C 1114.39 316.15 1115.04 321.06 1117.87 325.01 C 1131.38 286.24 1146.23 247.95 1160.58 209.48 C 1171.95 180.10 1182.79 150.48 1194.36 121.19 C 1200.12 120.20 1206.13 121.06 1212.00 120.77 C 1228.00 120.77 1244.00 120.78 1260.00 120.77 C 1264.50 120.77 1269.03 120.62 1273.53 121.15 C 1276.08 160.45 1279.27 199.75 1282.09 239.06 C 1283.42 260.57 1285.60 282.03 1286.87 303.55 C 1287.92 309.63 1287.05 315.86 1288.31 321.92 C 1288.52 329.62 1289.62 337.26 1289.65 344.98 C 1290.61 349.84 1290.34 354.81 1290.79 359.72 C 1291.77 364.68 1291.39 369.75 1291.74 374.76 C 1271.94 374.82 1252.15 374.72 1232.36 374.78 C 1232.66 370.69 1232.02 366.64 1231.56 362.59 C 1231.57 352.63 1230.15 342.76 1230.33 332.78 C 1229.23 324.89 1229.62 316.92 1229.25 308.99 C 1227.80 300.40 1229.09 291.64 1227.79 283.04 C 1227.31 276.02 1227.62 268.98 1227.22 261.96 C 1226.04 255.37 1226.64 248.65 1226.38 241.99 C 1226.52 237.98 1225.52 234.05 1225.56 230.05 C 1225.43 221.24 1225.63 212.43 1225.21 203.63 C 1221.74 208.33 1220.48 214.16 1218.20 219.44 C 1198.09 270.13 1178.33 320.96 1158.59 371.79 C 1131.75 371.82 1104.92 371.81 1078.09 371.71 C 1069.43 344.94 1059.77 318.48 1051.08 291.72 C 1040.80 262.17 1031.62 232.25 1020.62 202.95 C 1016.18 249.68 1012.96 296.49 1008.58 343.22 C 1007.97 353.70 1006.19 364.10 1006.31 374.62 C 985.68 374.93 965.04 374.76 944.41 374.64 C 947.10 351.79 949.48 328.90 951.57 305.98 C 958.04 244.36 964.24 182.74 970.46 121.10 Z" />
+              </g>
+            </svg>
+            <!-- Divisor vertical -->
+            <div class="w-0.5 h-8 md:h-10 bg-black flex-shrink-0" aria-hidden="true"></div>
             <div>
-              <h1 class="text-2xl font-semibold text-gray-900">
+              <h1 class="text-xl md:text-2xl font-semibold text-gray-900">
                 Organizador de Convocação
               </h1>
-              <p class="text-sm text-gray-500">Distribuição de vagas por cotas</p>
+              <p class="text-sm text-gray-500 hidden sm:block">Distribuição de vagas por cotas</p>
             </div>
           </div>
           
@@ -842,16 +860,16 @@
             id="btnAdmin" 
             href="#"
             target="_top"
-            class="hidden px-4 py-2 bg-gray-900 text-white rounded-lg font-medium hover:bg-gray-800 flex items-center gap-2 transition-colors no-underline"
+            class="hidden px-3 md:px-4 flex-shrink-0 py-2 bg-gray-900 text-white rounded-lg font-medium hover:bg-gray-800 flex items-center gap-2 transition-colors no-underline"
           >
             <i data-lucide="settings" class="w-4 h-4"></i>
-            Admin
+            <span class="hidden sm:inline">Admin</span>
           </a>
         </div>
       </div>
     </header>
 
-    <main class="max-w-6xl mx-auto px-4 py-8">
+    <main class="flex-1 w-full max-w-6xl mx-auto px-4 pt-8 pb-2">
       <!-- Tabs Navigation -->
       <div class="bg-white rounded-lg shadow-sm border border-main mb-6">
         <div class="border-b border-main overflow-hidden">
@@ -919,11 +937,11 @@
                 ></i>
               </button>
               <div id="collapse-comoUsar" class="collapsible-content active">
-                <div class="p-4 border-t border-main">
-                  <div class="flex flex-col md:flex-row items-stretch gap-2 md:gap-0">
+                <div class="p-4 border-t border-main md:overflow-x-auto lg:overflow-visible">
+                  <div class="flex flex-col md:flex-row items-stretch gap-2 md:gap-0 md:w-max lg:w-full">
 
                     <!-- Card 1 - Prepare -->
-                    <div class="flex-1 border border-main rounded-lg p-5">
+                    <div class="flex-1 md:w-[244px] md:flex-none lg:flex-1 border border-main rounded-lg p-5">
                       <div class="flex items-center gap-3 mb-3">
                         <div class="w-10 h-10 bg-blue-50 rounded-full flex items-center justify-center flex-shrink-0">
                           <span class="text-blue-600 font-bold text-sm leading-none">01</span>
@@ -952,7 +970,7 @@
                     </div>
 
                     <!-- Card 2 - Upload -->
-                    <div class="flex-1 border border-main rounded-lg p-5">
+                    <div class="flex-1 md:w-[244px] md:flex-none lg:flex-1 border border-main rounded-lg p-5">
                       <div class="flex items-center gap-3 mb-3">
                         <div class="w-10 h-10 bg-green-50 rounded-full flex items-center justify-center flex-shrink-0">
                           <span class="text-green-600 font-bold text-sm leading-none">02</span>
@@ -973,7 +991,7 @@
                     </div>
 
                     <!-- Card 3 - Configure -->
-                    <div class="flex-1 border border-main rounded-lg p-5">
+                    <div class="flex-1 md:w-[244px] md:flex-none lg:flex-1 border border-main rounded-lg p-5">
                       <div class="flex items-center gap-3 mb-3">
                         <div class="w-10 h-10 bg-purple-50 rounded-full flex items-center justify-center flex-shrink-0">
                           <span class="text-purple-600 font-bold text-sm leading-none">03</span>
@@ -994,7 +1012,7 @@
                     </div>
 
                     <!-- Card 4 - Resultado -->
-                    <div class="flex-1 border border-main rounded-lg p-5">
+                    <div class="flex-1 md:w-[244px] md:flex-none lg:flex-1 border border-main rounded-lg p-5">
                       <div class="flex items-center gap-3 mb-3">
                         <div class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style="background-color: #f8eee7;">
                           <span class="font-bold text-sm leading-none" style="color: #b45309;">04</span>
@@ -1022,7 +1040,7 @@
                 class="w-12 h-12 text-gray-400 mx-auto mb-4"
               ></i>
               <h3 class="text-base font-medium text-gray-900 mb-2">
-                Clique ou arraste o arquivo CSV aqui
+                Clique ou arraste o arquivo aqui
               </h3>
               <p class="text-sm text-gray-500 mb-2">
                 Colunas obrigatórias: <strong>nome</strong>, <strong>classificacao_geral</strong>, <strong>classificacao_negro</strong>, <strong>classificacao_deficiente</strong>
@@ -1030,7 +1048,7 @@
               <p class="text-xs text-gray-400">
                 Formato: CSV (vírgula ou ponto e vírgula) • Codificação: UTF-8
               </p>
-              <input type="file" id="fileInput" accept=".csv" class="hidden" />
+              <input type="file" id="fileInput" accept=".csv,.xls,.xlsx" class="hidden" />
             </div>
 
             <!-- Arquivo carregado -->
@@ -1491,7 +1509,7 @@
               `Reclassificação concluída! ${qtd} candidatos processados.`,
           },
           ERRO: {
-            ARQUIVO_INVALIDO: "Por favor, selecione um arquivo CSV válido.",
+            ARQUIVO_INVALIDO: "Selecione um arquivo válido. (CSV, XLS ou XLSX)",
             COLUNAS_OBRIGATORIAS:
               "Colunas obrigatórias não encontradas. Necessárias: nome, classificacao_geral, classificacao_deficiente, classificacao_negro",
             NENHUM_CANDIDATO: "Nenhum candidato válido encontrado no arquivo.",
@@ -1746,7 +1764,8 @@
       const ValidationManager = {
 
         validarArquivoCSV(fileName) {
-          return fileName.endsWith(".csv");
+          const nome = fileName.toLowerCase();
+          return nome.endsWith(".csv") || nome.endsWith(".xls") || nome.endsWith(".xlsx");
         },
 
         detectarColunas(cabecalho) {
@@ -2347,7 +2366,7 @@
 
             toast.innerHTML = `
           <i data-lucide="${icons[type]}" class="w-5 h-5 flex-shrink-0" aria-hidden="true"></i>
-          <span class="flex-1 text-sm font-medium">${message}</span>
+          <span class="flex-1 text-sm font-medium">${message.replace(/\n/g, '<br>')}</span>
           <button class="toast-close" onclick="this.parentElement.remove()" aria-label="Fechar notificação">
               <i data-lucide="x" class="w-4 h-4" aria-hidden="true"></i>
           </button>
@@ -2655,28 +2674,69 @@
 
       const FileManager = {
 
-        processarArquivo(file, onSuccess, onError) {
+        processarArquivo(file, onSuccess, onError, skipExcelConfirmation = false) {
           if (!ValidationManager.validarArquivoCSV(file.name)) {
             onError(CONFIG.MENSAGENS.ERRO.ARQUIVO_INVALIDO);
             return;
           }
 
-          const reader = new FileReader();
+          const nome = file.name.toLowerCase();
+          const isExcel = nome.endsWith(".xls") || nome.endsWith(".xlsx");
 
-          reader.onload = (e) => {
-            try {
-              const dados = this.parseCSV(e.target.result);
-              onSuccess(dados, file.name);
-            } catch (error) {
-              onError(CONFIG.MENSAGENS.ERRO.PROCESSAMENTO(error.message));
+          const executarLeitura = () => {
+            if (isExcel) {
+              const reader = new FileReader();
+              reader.onload = (e) => {
+                try {
+                  const workbook = XLSX.read(e.target.result, { type: "array" });
+                  const primeirAba = workbook.SheetNames[0];
+                  const csvContent = XLSX.utils.sheet_to_csv(
+                    workbook.Sheets[primeirAba],
+                    { FS: ";" }
+                  );
+                  const dados = this.parseCSV(csvContent);
+                  onSuccess(dados, file.name);
+                } catch (error) {
+                  onError(CONFIG.MENSAGENS.ERRO.PROCESSAMENTO(error.message));
+                }
+              };
+              reader.onerror = () => onError(CONFIG.MENSAGENS.ERRO.LEITURA);
+              reader.readAsArrayBuffer(file);
+            } else {
+              const reader = new FileReader();
+              reader.onload = (e) => {
+                try {
+                  const dados = this.parseCSV(e.target.result);
+                  onSuccess(dados, file.name);
+                } catch (error) {
+                  onError(CONFIG.MENSAGENS.ERRO.PROCESSAMENTO(error.message));
+                }
+              };
+              reader.onerror = () => onError(CONFIG.MENSAGENS.ERRO.LEITURA);
+              reader.readAsText(file, "UTF-8");
             }
           };
 
-          reader.onerror = () => {
-            onError(CONFIG.MENSAGENS.ERRO.LEITURA);
-          };
-
-          reader.readAsText(file, "UTF-8");
+          // Confirmação Excel já tratada pelo chamador — lê direto
+          if (isExcel && !skipExcelConfirmation) {
+            showConfirmation(
+              "Arquivo Excel detectado",
+              "O arquivo enviado está no formato Excel (XLS/XLSX). Apenas os dados da PRIMEIRA ABA serão considerados no processamento.\n\nCertifique-se de que os dados estão na primeira aba antes de prosseguir.",
+              {
+                type: "warning",
+                confirmText: "Prosseguir",
+                cancelText: "Cancelar",
+              }
+            ).then((confirmed) => {
+              if (confirmed) {
+                executarLeitura();
+              } else {
+                document.getElementById("fileInput").value = "";
+              }
+            });
+          } else {
+            executarLeitura();
+          }
         },
 
         parseCSV(csvContent) {
@@ -2740,7 +2800,7 @@
               r.tipoVaga,
             ]),
           ]
-            .map((linha) => linha.join(","))
+            .map((linha) => linha.join(";"))
             .join("\n");
 
           const blob = new Blob(["\ufeff" + csv], {
@@ -2783,6 +2843,41 @@
               onFileSelected(e.target.files[0]);
             }
           });
+        },
+
+        // ========== VALIDAÇÃO DE TIPOS ==========
+
+        validarTiposDados(dadosCSV) {
+          const { cabecalho, dados } = dadosCSV;
+          const mapeamento = ValidationManager.detectarColunas(cabecalho);
+          if (!mapeamento) return { valido: true, erros: [] };
+
+          const colunas = [
+            { chave: mapeamento.geral, nome: "classificacao_geral" },
+            { chave: mapeamento.pcd,   nome: "classificacao_deficiente" },
+            { chave: mapeamento.pn,    nome: "classificacao_negro" },
+          ];
+
+          const erros = [];
+
+          colunas.forEach(({ chave, nome }) => {
+            const linhasInvalidas = [];
+
+            dados.forEach((linha, idx) => {
+              const valor = linha[chave];
+              if (valor === "" || valor === null || valor === undefined) return;
+              const str = String(valor).trim();
+              if (/[.,]/.test(str)) {
+                linhasInvalidas.push(idx + 2);
+              }
+            });
+
+            if (linhasInvalidas.length > 0) {
+              erros.push({ coluna: nome, linhas: linhasInvalidas });
+            }
+          });
+
+          return { valido: erros.length === 0, erros };
         },
 
         // ========== MÉTODOS PRIVADOS ==========
@@ -3123,7 +3218,48 @@
       }
 
       function processarArquivo(file) {
-        if (todosOsCandidatos.length > 0) {
+        const nome = file.name.toLowerCase();
+        const isExcel = nome.endsWith(".xls") || nome.endsWith(".xlsx");
+        const temDados = todosOsCandidatos.length > 0;
+
+        if (isExcel && temDados) {
+          // Cenário: Excel + dados existentes → modal único combinado
+          const conf = CONFIG.MENSAGENS.CONFIRMACAO.SUBSTITUIR_ARQUIVO;
+          showConfirmation(
+            conf.titulo,
+            conf.mensagem(nomeArquivoOriginal) +
+              "\n\nO novo arquivo está no formato Excel (XLS/XLSX). Apenas os dados da PRIMEIRA ABA serão considerados.",
+            {
+              type: "warning",
+              confirmText: "Sim, Substituir",
+              cancelText: "Cancelar",
+            }
+          ).then((confirmed) => {
+            if (confirmed) {
+              carregarArquivo(file, true);
+            } else {
+              document.getElementById("fileInput").value = "";
+            }
+          });
+        } else if (isExcel) {
+          // Cenário: Excel + sem dados → aviso primeira aba
+          showConfirmation(
+            "Arquivo Excel detectado",
+            "O arquivo enviado está no formato Excel (XLS/XLSX). Apenas os dados da PRIMEIRA ABA serão considerados no processamento.\n\nCertifique-se de que os dados estão na primeira aba antes de prosseguir.",
+            {
+              type: "warning",
+              confirmText: "Prosseguir",
+              cancelText: "Cancelar",
+            }
+          ).then((confirmed) => {
+            if (confirmed) {
+              carregarArquivo(file, true);
+            } else {
+              document.getElementById("fileInput").value = "";
+            }
+          });
+        } else if (temDados) {
+          // Cenário: CSV + dados existentes → substituição
           const conf = CONFIG.MENSAGENS.CONFIRMACAO.SUBSTITUIR_ARQUIVO;
           showConfirmation(conf.titulo, conf.mensagem(nomeArquivoOriginal), {
             type: "warning",
@@ -3131,17 +3267,18 @@
             cancelText: "Cancelar",
           }).then((confirmed) => {
             if (confirmed) {
-              carregarArquivo(file);
+              carregarArquivo(file, false);
             } else {
               document.getElementById("fileInput").value = "";
             }
           });
         } else {
-          carregarArquivo(file);
+          // Cenário: CSV + sem dados → lê direto
+          carregarArquivo(file, false);
         }
       }
 
-      function carregarArquivo(file) {
+      function carregarArquivo(file, skipExcelConfirmation = false) {
         FileManager.processarArquivo(
           file,
           // onSuccess
@@ -3153,10 +3290,21 @@
             showAlert(mensagemErro, "error");
             document.getElementById("fileInput").value = "";
           },
+          skipExcelConfirmation,
         );
       }
 
       function validarECarregar(dadosCSV, fileName) {
+        const validacaoTipos = FileManager.validarTiposDados(dadosCSV);
+        if (!validacaoTipos.valido) {
+          const detalhes = validacaoTipos.erros
+            .map(e => `• ${e.coluna}: ${e.linhas.length} ${e.linhas.length > 1 ? 'valores' : 'valor'} com ponto ou vírgula`)
+            .join("\n");
+          showAlert(`Formato inválido detectado no arquivo.\n\n${detalhes}\n\nVerifique se as colunas de classificação contêm apenas números inteiros positivos.`, "error");
+          document.getElementById("fileInput").value = "";
+          return;
+        }
+        
         try {
           todosOsCandidatos = FileManager.converterParaCandidatos(dadosCSV);
         } catch (error) {
@@ -3324,9 +3472,11 @@
           ["Daniel Costa Almeida", "20", "7", "5"]
         ];
 
-        // Gera CSV
-        const csv = dadosExemplo
-          .map(linha => linha.join(","))
+        // Gera CSV (dados ordenados por classificacao_geral crescente)
+        const [cabecalho, ...dados] = dadosExemplo;
+        const dadosOrdenados = dados.sort((a, b) => parseInt(a[1]) - parseInt(b[1]));
+        const csv = [cabecalho, ...dadosOrdenados]
+          .map(linha => linha.join(";"))
           .join("\n");
 
         // Cria blob com BOM UTF-8
@@ -5219,5 +5369,12 @@
         switchTab("upload");
       }
     </script>
+
+    <!-- Rodapé -->
+    <footer class="py-2 px-4">
+      <p class="text-center text-xs text-gray-400">
+        Desenvolvido por Unidade Avançada de Inovação em Laboratório - UAILAB
+      </p>
+    </footer>
   </body>
 </html>
