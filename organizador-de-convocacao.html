@@ -42,6 +42,9 @@
         opacity: 0.4;
         cursor: not-allowed;
       }
+      .tab-disabled:hover {
+        color: inherit !important;
+      }
       .scrollbar-hide {
         -ms-overflow-style: none;
         scrollbar-width: none;
@@ -712,96 +715,7 @@
       </div>
     </div>
 
-    <!-- Modal de Edição de Padrão do Bloco -->
-    <div
-      id="editPatternModal"
-      class="modal-overlay hidden fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-      role="dialog"
-      aria-labelledby="editPatternTitle"
-      aria-modal="true"
-    >
-      <div
-        class="modal-content bg-white rounded-lg max-w-4xl w-full max-h-[90vh] flex flex-col shadow-xl"
-      >
-        <!-- Header -->
-        <div
-          class="px-6 py-4 border-b border-main flex items-center justify-between flex-shrink-0"
-        >
-          <div class="flex items-center gap-3">
-            <i
-              data-lucide="edit-3"
-              class="w-6 h-6 text-gray-700"
-              aria-hidden="true"
-            ></i>
-            <h2
-              id="editPatternTitle"
-              class="text-lg font-semibold text-gray-900"
-            >
-              Editar Padrão do Bloco
-            </h2>
-          </div>
-          <button
-            onclick="closeEditPatternModal()"
-            class="text-gray-400 hover:text-gray-600"
-            aria-label="Fechar modal"
-          >
-            <i data-lucide="x" class="w-6 h-6" aria-hidden="true"></i>
-          </button>
-        </div>
 
-        <!-- Content com Scroll -->
-        <div
-          class="px-6 py-4 overflow-y-auto flex-1"
-        >
-          <!-- Nome do Bloco -->
-          <div class="mb-4 p-3 bg-gray-50 border border-main rounded-lg">
-            <div class="flex items-center gap-2">
-              <i data-lucide="info" class="w-4 h-4 text-gray-600"></i>
-              <span class="text-sm font-medium text-gray-600" id="editPatternBlocoNome"></span>
-            </div>
-          </div>
-
-          <!-- Container do Padrão -->
-          <div>
-            <label class="block text-sm font-semibold text-gray-900 mb-1 pt-2">
-              Padrão do bloco (se repete ciclicamente):
-            </label>
-            <p class="text-xs text-gray-600 mb-3">Clique e arraste o bloco da vaga para reorganizar a sequência do padrão</p>
-            <div
-              id="modalPatternContainer"
-              class="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-8 gap-2 mb-4 min-h-[100px] p-4 border border-gray-200 rounded-lg bg-gray-50"
-            ></div>
-          </div>
-
-          <!-- Análise do Padrão -->
-          <label class="block text-sm font-semibold text-gray-900 mb-3 pt-2">Análise do Padrão</label>
-          <div id="modalPatternAnalysis" class="bg-gray-50 border border-gray-200 rounded-lg p-3">
-            <div
-              id="modalPatternStats"
-              class="grid grid-cols-1 md:grid-cols-3 gap-3"
-            ></div>
-          </div>
-        </div>
-
-        <!-- Footer -->
-        <div
-          class="px-6 py-4 border-t border-gray-200 flex justify-end gap-3 flex-shrink-0"
-        >
-          <button
-            onclick="closeEditPatternModal()"
-            class="px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 transition-colors"
-          >
-            Cancelar
-          </button>
-          <button
-            onclick="salvarPadraoBloco()"
-            class="px-4 py-2 bg-gray-900 text-white rounded-lg font-medium hover:bg-gray-800 transition-colors"
-          >
-            Salvar Padrão
-          </button>
-        </div>
-      </div>
-    </div>
 
     <!-- Header -->
     <header class="bg-white border-b border-gray-200">
@@ -828,7 +742,7 @@
               <h1 class="text-xl md:text-2xl font-semibold text-gray-900">
                 Organizador de Convocação
               </h1>
-              <p class="text-sm text-gray-500 hidden sm:block">Distribuição de vagas por cotas</p>
+              <p class="text-sm text-gray-500 hidden sm:block">Distribuição de vagas por cotas - Estagiários</p>
             </div>
           </div>
           
@@ -857,7 +771,7 @@
           >
             <button
               id="tab-upload"
-              class="tab-button tab-active px-6 py-4 border-b-2 border-blue-500 text-blue-600 font-medium text-sm flex items-center gap-2 whitespace-nowrap flex-shrink-0"
+              class="tab-button tab-active px-6 py-4 border-b-2 border-blue-500 text-blue-600 font-medium text-sm flex items-center gap-2 whitespace-nowrap flex-shrink-0 hover:text-blue-600"
               onclick="switchTab('upload')"
             >
               <i data-lucide="upload" class="w-4 h-4"></i>
@@ -865,7 +779,7 @@
             </button>
             <button
               id="tab-config"
-              class="tab-button tab-disabled px-6 py-4 border-b-2 border-transparent font-medium text-sm flex items-center gap-2 whitespace-nowrap flex-shrink-0"
+              class="tab-button tab-disabled px-6 py-4 border-b-2 border-transparent font-medium text-sm flex items-center gap-2 whitespace-nowrap flex-shrink-0 hover:text-blue-600"
               onclick="switchTab('config')"
               data-tab-tooltip="Faça o upload de um arquivo CSV para liberar esta aba"
             >
@@ -874,12 +788,24 @@
             </button>
             <button
               id="tab-resultado"
-              class="tab-button tab-disabled px-6 py-4 border-b-2 border-transparent font-medium text-sm flex items-center gap-2 whitespace-nowrap flex-shrink-0"
+              class="tab-button tab-disabled px-6 py-4 border-b-2 border-transparent font-medium text-sm flex items-center gap-2 whitespace-nowrap flex-shrink-0 hover:text-blue-600"
               onclick="switchTab('resultado')"
               data-tab-tooltip="Processe os dados na aba Configuração para liberar esta aba"
             >
               <i data-lucide="check-circle" class="w-4 h-4"></i>
               Resultado
+            </button>
+
+            <!-- Aba Ajuda: sempre habilitada, empurrada para a direita -->
+            <button
+              id="tab-ajuda"
+              class="ml-auto px-6 py-4 border-b-2 border-transparent text-gray-900 hover:text-blue-600 font-medium text-sm flex items-center gap-2 whitespace-nowrap flex-shrink-0"
+              onclick="switchTabAjuda()"
+              data-tippy-content="Guia detalhado de uso"
+            >
+              Ajuda
+              <i data-lucide="help-circle" class="w-4 h-4"></i>
+            </button>
             </button>
           </nav>
         </div>
@@ -899,11 +825,11 @@
               >
                 <div class="flex items-center gap-3">
                   <i
-                    data-lucide="help-circle"
+                    data-lucide="list-checks"
                     class="w-5 h-5 text-gray-700"
                     aria-hidden="true"
                   ></i>
-                  <span class="font-semibold text-gray-900">Como usar esta ferramenta</span>
+                  <span class="font-semibold text-gray-900">Guia rápido de uso</span>
                 </div>
                 <i
                   data-lucide="chevron-down"
@@ -918,7 +844,7 @@
                   <div class="flex flex-col md:flex-row items-stretch gap-2 md:gap-0 md:w-max lg:w-full">
 
                     <!-- Card 1 - Prepare -->
-                    <div class="flex-1 md:w-[244px] md:flex-none lg:flex-1 border border-main rounded-lg p-5">
+                    <div class="flex-1 md:w-[244px] md:flex-none lg:flex-1 border border-main rounded-lg p-6">
                       <div class="flex items-center gap-3 mb-3">
                         <div class="w-10 h-10 bg-blue-50 rounded-full flex items-center justify-center flex-shrink-0">
                           <span class="text-blue-600 font-bold text-sm leading-none">01</span>
@@ -926,7 +852,7 @@
                         <span class="text-sm font-semibold text-gray-900">Prepare seu arquivo</span>
                       </div>
                       <p class="text-xs text-gray-600 leading-relaxed mb-3">
-                        Use arquivo CSV com as colunas obrigatórias ou baixe nosso template.
+                        Na aba "Upload", crie um arquivo CSV conforme o modelo abaixo ou substitua o conteúdo dele sem alterar os nomes das colunas
                       </p>
                       <button
                         id="btnDownloadModelo"
@@ -947,7 +873,7 @@
                     </div>
 
                     <!-- Card 2 - Upload -->
-                    <div class="flex-1 md:w-[244px] md:flex-none lg:flex-1 border border-main rounded-lg p-5">
+                    <div class="flex-1 md:w-[244px] md:flex-none lg:flex-1 border border-main rounded-lg p-6">
                       <div class="flex items-center gap-3 mb-3">
                         <div class="w-10 h-10 bg-green-50 rounded-full flex items-center justify-center flex-shrink-0">
                           <span class="text-green-600 font-bold text-sm leading-none">02</span>
@@ -955,7 +881,7 @@
                         <span class="text-sm font-semibold text-gray-900">Faça o upload</span>
                       </div>
                       <p class="text-xs text-gray-600 leading-relaxed">
-                        Arraste seu arquivo ou clique na área abaixo. O sistema verificará os dados carregados.
+                        Na aba "Upload", arraste e solte o arquivo CSV dentro da área pontilhada ou clique nela para selecioná-lo do seu computador.
                       </p>
                     </div>
 
@@ -968,7 +894,7 @@
                     </div>
 
                     <!-- Card 3 - Configure -->
-                    <div class="flex-1 md:w-[244px] md:flex-none lg:flex-1 border border-main rounded-lg p-5">
+                    <div class="flex-1 md:w-[244px] md:flex-none lg:flex-1 border border-main rounded-lg p-6">
                       <div class="flex items-center gap-3 mb-3">
                         <div class="w-10 h-10 bg-purple-50 rounded-full flex items-center justify-center flex-shrink-0">
                           <span class="text-purple-600 font-bold text-sm leading-none">03</span>
@@ -976,7 +902,7 @@
                         <span class="text-sm font-semibold text-gray-900">Configure as cotas</span>
                       </div>
                       <p class="text-xs text-gray-600 leading-relaxed">
-                        Na aba 'Configuração', ajuste percentuais de cotas e o padrão de distribuição de vagas conforme necessário.
+                        Na aba "Configuração", confira se o padrão de distribuição de chamada está conforme o edital. Se precisar reordenar, clique e arraste os blocos.
                       </p>
                     </div>
 
@@ -989,7 +915,7 @@
                     </div>
 
                     <!-- Card 4 - Resultado -->
-                    <div class="flex-1 md:w-[244px] md:flex-none lg:flex-1 border border-main rounded-lg p-5">
+                    <div class="flex-1 md:w-[244px] md:flex-none lg:flex-1 border border-main rounded-lg p-6">
                       <div class="flex items-center gap-3 mb-3">
                         <div class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style="background-color: #f8eee7;">
                           <span class="font-bold text-sm leading-none" style="color: #b45309;">04</span>
@@ -997,7 +923,7 @@
                         <span class="text-sm font-semibold text-gray-900">Visualize e exporte</span>
                       </div>
                       <p class="text-xs text-gray-600 leading-relaxed">
-                        Após clicar em 'Processar', confira o resultado final na aba 'Resultado' e exporte em CSV ou imprima a lista de convocação.
+                        Após clicar em 'Processar' na aba "Configuração", revise o resultado e exporte ou imprima a lista de convocação na aba "Resultado".
                       </p>
                     </div>
 
@@ -1079,13 +1005,14 @@
           <!-- Tab: Configuração -->
           <div id="content-config" class="tab-content hidden">
             
-            <!-- Texto Explicativo -->
-            <div class="mb-6 p-4 bg-gray-50 border border-main rounded-lg">
-              <p class="text-sm text-gray-700">
-                Configure os blocos de distribuição. Cada bloco define um padrão que se repete até o limite especificado.
-              </p>
+            <!-- Info Blocos -->
+            <div class="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <div class="flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="w-5 h-5 text-blue-600 flex-shrink-0"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                <span class="text-sm text-blue-900">Configure os blocos de distribuição. Cada bloco define um padrão que se repete até o limite informado.</span>
+              </div>
             </div>
-            
+
             <!-- Layout Master-Detail -->
             <div class="flex flex-col lg:flex-row gap-6">
               
@@ -1167,67 +1094,25 @@
                     </div>
                     
                     <!-- Conteúdo Scrollável do Editor -->
-                    <div class="flex-1 overflow-y-auto p-6 space-y-6">
+                    <div class="flex-1 overflow-y-auto p-4">
                       
-                      <!-- Seção: Aplicação do Padrão -->
+                      <!-- Inputs ocultos: mantidos para compatibilidade com a lógica de configuração dos blocos -->
+                      <input type="text" id="editorPosicaoInicio" readonly tabindex="-1" class="hidden" />
+                      <input type="number" id="editorPosicaoFim" min="1" class="hidden" />
+
+                      <!-- Seção: Padrão de Distribuição (reordenável inline) -->
                       <div>
-                        <div class="flex items-center gap-2 mb-3">
-                          <i data-lucide="map-pin" class="w-4 h-4 text-gray-700"></i>
-                          <label class="text-sm font-semibold text-gray-900">Aplicação do Padrão</label>
-                          <span class="tooltip-trigger cursor-help inline-flex" data-tippy-content="Define o intervalo de posições onde este padrão será aplicado">
-                            <i data-lucide="help-circle" class="w-3.5 h-3.5 text-gray-400"></i>
-                          </span>
-                        </div>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-md">
-                          <div>
-                            <label class="block text-xs font-semibold text-gray-700 mb-2">Da posição</label>
-                            <input
-                              type="text"
-                              id="editorPosicaoInicio"
-                              readonly
-                              tabindex="-1"
-                              value="1"
-                              class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm font-semibold bg-gray-50 text-gray-400 cursor-default focus:outline-none focus:ring-0 focus:border-gray-300"
-                            />
-                          </div>
-                          <div>
-                            <label class="block text-xs font-semibold text-gray-700 mb-2">Até a posição</label>
-                            <input
-                              type="number"
-                              id="editorPosicaoFim"
-                              min="1"
-                              placeholder="∞ (restante)"
-                              class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm placeholder:text-gray-400 "
-                            />
-                          </div>
-                        </div>
-                      </div>
-                                            
-                      <div class="h-px bg-main"></div>
-                      
-                      <!-- Seção: Padrão de Distribuição -->
-                      <div>
-                        <div class="flex items-center justify-between mb-3">
-                          <div class="flex items-center gap-2">
-                            <i data-lucide="layout-grid" class="w-4 h-4 text-gray-700"></i>
-                            <label class="text-sm font-semibold text-gray-900">Padrão de Distribuição</label>
-                            <span class="tooltip-trigger cursor-help inline-flex" data-tippy-content="Sequência de vagas que se repete ciclicamente">
-                              <i data-lucide="help-circle" class="w-3.5 h-3.5 text-gray-400"></i>
-                            </span>
-                          </div>
-                          <button
-                            id="editorEditarPadrao"
-                            class="px-3 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 bg-white hover:bg-gray-50 rounded-lg transition-all flex items-center gap-2 border" style="border-color: #000000;"
-                          >
-                            <i data-lucide="edit-2" class="w-4 h-4"></i>
-                            <span class="hidden sm:inline">Editar Padrão</span>
-                          </button>
-                        </div>
-                        
-                        <div class="p-4 bg-gray-50 rounded-lg border border-main">
-                          <div id="editorPreviewPadrao" class="flex flex-wrap gap-2 min-h-[60px] items-center">
-                            <!-- Preview do padrão -->
-                          </div>
+                        <label class="block text-sm font-semibold text-gray-900 mb-1">Padrão do bloco (se repete ciclicamente):</label>
+                        <p class="text-xs text-gray-600 mb-3">Clique e arraste o bloco da vaga para reorganizar a sequência do padrão</p>
+                        <div
+                          id="modalPatternContainer"
+                          class="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-10 gap-3 mb-4 min-h-[100px] p-3 border border-gray-200 rounded-lg bg-gray-50"
+                        ></div>
+
+                        <!-- Análise do Padrão -->
+                        <label class="block text-sm font-semibold text-gray-900 mb-2">Análise do Padrão</label>
+                        <div id="modalPatternAnalysis" class="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                          <div id="modalPatternStats" class="grid grid-cols-1 md:grid-cols-3 gap-3"></div>
                         </div>
                       </div>
                       
@@ -1368,6 +1253,109 @@
             <div class="flex justify-start mt-6">
               <button
                 onclick="switchTab('config')"
+                class="px-6 py-2 bg-white text-gray-700 border rounded-lg font-medium hover:bg-gray-50 flex items-center justify-center gap-2 transition-colors" style="border-color: #000000;"
+              >
+                <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                Voltar
+              </button>
+            </div>
+          </div>
+          <!-- Tab: Ajuda -->
+          <div id="content-ajuda" class="tab-content hidden">
+
+            <!-- Cabeçalho do guia (estilo collapsible, mas estático) -->
+            <div class="border border-main rounded-lg mb-6 overflow-hidden">
+              <div class="w-full p-4 flex items-center gap-3" style="background-color: #ffffff;">
+                <i data-lucide="book-open" class="w-5 h-5 text-gray-700" aria-hidden="true"></i>
+                <span class="font-semibold text-gray-900">Guia detalhado de uso</span>
+              </div>
+
+              <!-- Área de cards com fundo acinzentado -->
+              <div class="p-4 border-t border-main" style="background-color: #f9fafb;">
+                <div class="flex flex-col gap-3">
+
+                  <!-- Card 1 -->
+                  <div class="w-full border border-main rounded-lg p-6 bg-white">
+                    <div class="flex items-center gap-3 mb-3">
+                      <div class="w-10 h-10 bg-blue-50 rounded-full flex items-center justify-center flex-shrink-0">
+                        <span class="text-blue-600 font-bold text-sm leading-none">01</span>
+                      </div>
+                      <span class="text-sm font-semibold text-gray-900">Prepare seu arquivo</span>
+                    </div>
+                    <p class="text-xs text-gray-600 leading-relaxed">
+                      Na aba "Upload", baixe o modelo obrigatório de configuração da planilha clicando no botão "Baixar modelo" e estruture seu arquivo exatamente conforme o padrão exigido.
+                      <br><br>
+                      Alternativamente, cole seus dados diretamente na planilha modelo, substituindo as informações existentes, sem alterar a ordem das colunas nem os respectivos cabeçalhos.
+                      <br><br>
+                      Use arquivo em formato CSV.
+                    </p>
+                    <video autoplay loop muted playsinline class="w-full rounded-lg mt-4" style="box-shadow: 0px 6px 6px 0px rgba(0, 0, 0, 0.3);">
+                      <source src="https://github.com/moisesuailab/convocacao-assets/raw/refs/heads/main/teste.webm" type="video/webm">
+                    </video>
+                  </div>
+
+                  <!-- Card 2 -->
+                  <div class="w-full border border-main rounded-lg p-6 bg-white">
+                    <div class="flex items-center gap-3 mb-3">
+                      <div class="w-10 h-10 bg-green-50 rounded-full flex items-center justify-center flex-shrink-0">
+                        <span class="text-green-600 font-bold text-sm leading-none">02</span>
+                      </div>
+                      <span class="text-sm font-semibold text-gray-900">Faça o upload</span>
+                    </div>
+                    <p class="text-xs text-gray-600 leading-relaxed">
+                      Ainda na aba "Upload", arraste seu arquivo ou clique na área pontilhada.
+                      <br><br>
+                      O sistema verificará os dados carregados.
+                    </p>
+                    <video autoplay loop muted playsinline class="w-full rounded-lg mt-4" style="box-shadow: 0px 6px 6px 0px rgba(0, 0, 0, 0.3);">
+                      <source src="https://github.com/moisesuailab/convocacao-assets/raw/refs/heads/main/teste.webm" type="video/webm">
+                    </video>
+                  </div>
+
+                  <!-- Card 3 -->
+                  <div class="w-full border border-main rounded-lg p-6 bg-white">
+                    <div class="flex items-center gap-3 mb-3">
+                      <div class="w-10 h-10 bg-purple-50 rounded-full flex items-center justify-center flex-shrink-0">
+                        <span class="text-purple-600 font-bold text-sm leading-none">03</span>
+                      </div>
+                      <span class="text-sm font-semibold text-gray-900">Configure as cotas</span>
+                    </div>
+                    <p class="text-xs text-gray-600 leading-relaxed">
+                      Na aba "Configuração", verifique se o padrão de distribuição de chamada do sistema está de acordo com o edital, quando houver previsão específica. Caso necessário, clique em "Editar padrão" e reordene conforme estabelecido no edital.
+                      <br><br>
+                      Verifique se o padrão de distribuição do sistema está conforme o edital. Caso necessário, ajuste a ordem sequencial em Configuração → Editar padrão. O percentual de cotas é fixo: a cada dez convocações, devem ser chamados, quando houver candidatos disponíveis, 1 PcD (10%), 3 candidatos negros(as) (30%) e 6 da ampla concorrência (60%).
+                      <br><br>
+                      O padrão de ordem de distribuição para o restante da lista seguirá a ordem configurada no segundo bloco.
+                    </p>
+                    <video autoplay loop muted playsinline class="w-full rounded-lg mt-4" style="box-shadow: 0px 6px 6px 0px rgba(0, 0, 0, 0.3);">
+                      <source src="https://github.com/moisesuailab/convocacao-assets/raw/refs/heads/main/teste.webm" type="video/webm">
+                    </video>
+                  </div>
+
+                  <!-- Card 4 -->
+                  <div class="w-full border border-main rounded-lg p-6 bg-white">
+                    <div class="flex items-center gap-3 mb-3">
+                      <div class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style="background-color: #f8eee7;">
+                        <span class="font-bold text-sm leading-none" style="color: #b45309;">04</span>
+                      </div>
+                      <span class="text-sm font-semibold text-gray-900">Visualize e exporte</span>
+                    </div>
+                    <p class="text-xs text-gray-600 leading-relaxed">
+                      Após clicar em "Processar", confira o resultado final na aba "Resultado" e exporte em CSV ou imprima a lista de convocação.
+                    </p>
+                    <video autoplay loop muted playsinline class="w-full rounded-lg mt-4" style="box-shadow: 0px 6px 6px 0px rgba(0, 0, 0, 0.3);">
+                      <source src="https://github.com/moisesuailab/convocacao-assets/raw/refs/heads/main/teste.webm" type="video/webm">
+                    </video>
+                  </div>
+
+                </div>
+              </div>
+            </div>
+
+            <!-- Botão Voltar -->
+            <div class="flex justify-start">
+              <button
+                onclick="voltarDaAjuda()"
                 class="px-6 py-2 bg-white text-gray-700 border rounded-lg font-medium hover:bg-gray-50 flex items-center justify-center gap-2 transition-colors" style="border-color: #000000;"
               >
                 <i data-lucide="arrow-left" class="w-4 h-4"></i>
@@ -1630,7 +1618,7 @@
           if (!bloco.padrao || bloco.padrao.length === 0) {
             return { 
               valido: false, 
-              mensagem: "O padrão de distribuição está vazio. Clique em 'Editar Padrão' para configurar." 
+              mensagem: "O padrão de distribuição está vazio. Adicione vagas ao padrão antes de processar." 
             };
           }
           
@@ -2894,7 +2882,6 @@
       const ClassificationEngine = {
         
         reclassificar(candidatos, blocos) {
-          // Clona candidatos para não alterar o original
           const candidatosProcesso = candidatos.map((c) => ({
             ...c,
             selecionado: false,
@@ -2903,22 +2890,17 @@
           const resultado = [];
           let posicao = 1;
 
-          // Itera sobre cada bloco de distribuição
           for (let blocoIndex = 0; blocoIndex < blocos.length; blocoIndex++) {
             const bloco = blocos[blocoIndex];
             const limiteBloco = bloco.quantidadeTotal || Infinity;
             const posicaoInicioBloco = posicao;
 
-            // Aplica o padrão do bloco ciclicamente até atingir o limite
             while (posicao <= limiteBloco && this._existeNaoSelecionado(candidatosProcesso)) {
               
-              // Itera sobre o padrão do bloco
               for (let i = 0; i < bloco.padrao.length; i++) {
                 const regra = bloco.padrao[i];
                 
-                // Aplica as repetições da regra
                 for (let r = 0; r < regra.repeticoes; r++) {
-                  // Verifica se ainda há candidatos e se não ultrapassou o limite do bloco
                   if (!this._existeNaoSelecionado(candidatosProcesso) || posicao > limiteBloco) {
                     break;
                   }
@@ -3110,6 +3092,13 @@
         UIManager.collapse.initializeCollapsed();
         verificarSeEhOwner();
         initTabTooltips();
+        tippy('#tab-ajuda', {
+          theme: 'custom',
+          placement: 'top',
+          arrow: true,
+          animation: 'fade',
+          duration: [200, 150],
+        });
       });
 
       function verificarSeEhOwner() {
@@ -3147,8 +3136,34 @@
         });
       }
 
+      let tabAnteriorAjuda = 'upload';
+
       function switchTab(tabName) {
+        if (!UIManager.tabs.enabled[tabName]) return;
+        tabAnteriorAjuda = tabName;
+        document.getElementById('content-ajuda').classList.add('hidden');
+        document.getElementById('tab-ajuda').classList.remove('text-blue-600', 'font-semibold');
+        document.getElementById('tab-ajuda').classList.add('text-gray-900');
         UIManager.tabs.switch(tabName);
+      }
+
+      function voltarDaAjuda() {
+        const destino = UIManager.tabs.enabled[tabAnteriorAjuda] ? tabAnteriorAjuda : 'upload';
+        switchTab(destino);
+      }
+
+      function switchTabAjuda() {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+        document.querySelectorAll('.tab-button').forEach(btn => {
+          btn.classList.remove('tab-active', 'border-blue-500', 'text-blue-600');
+          btn.classList.add('border-transparent');
+        });
+        document.getElementById('content-ajuda').classList.remove('hidden');
+        
+        const tabAjuda = document.getElementById('tab-ajuda');
+        tabAjuda.classList.remove('text-gray-900');
+        tabAjuda.classList.add('text-blue-600', 'font-semibold');
+        lucide.createIcons();
       }
 
       function enableTab(tabName) {
@@ -3205,7 +3220,6 @@
         const temDados = todosOsCandidatos.length > 0;
 
         if (isExcel && temDados) {
-          // Cenário: Excel + dados existentes → modal único combinado
           const conf = CONFIG.MENSAGENS.CONFIRMACAO.SUBSTITUIR_ARQUIVO;
           showConfirmation(
             conf.titulo,
@@ -3224,7 +3238,6 @@
             }
           });
         } else if (isExcel) {
-          // Cenário: Excel + sem dados → aviso primeira aba
           showConfirmation(
             "Arquivo Excel detectado",
             "O arquivo enviado está no formato Excel (XLS/XLSX). Apenas os dados da PRIMEIRA ABA serão considerados no processamento.\n\nCertifique-se de que os dados estão na primeira aba antes de prosseguir.",
@@ -3415,43 +3428,28 @@
         const dadosExemplo = [
           ["nome", "classificacao_geral", "classificacao_negro", "classificacao_deficiente"],
           
-          // AC (20 candidatos)
-          ["Ana Silva Santos", "1", "", ""],
-          ["Carlos Eduardo Oliveira", "2", "", ""],
-          ["Juliana Mendes Ferreira", "4", "", ""],
-          ["Paulo Roberto Silva", "6", "", ""],
-          ["Camila Souza Martins", "8", "", ""],
-          ["Lucas Gabriel Costa", "11", "", ""],
-          ["Patrícia Alves Barbosa", "13", "", ""],
-          ["Bruno Henrique Dias", "15", "", ""],
-          ["Gabriela Cristina Ramos", "17", "", ""],
-          ["Felipe Augusto Moreira", "19", "", ""],
-          ["Beatriz Ferreira Souza", "21", "", ""],
-          ["Gustavo Henrique Lima", "22", "", ""],
-          ["Isabella Martins Rocha", "23", "", ""],
-          ["Leonardo Silva Cardoso", "24", "", ""],
-          ["Larissa Oliveira Santos", "25", "", ""],
-          ["Rafael Alves Pereira", "26", "", ""],
-          ["Carolina Costa Ribeiro", "27", "", ""],
-          ["André Luiz Fernandes", "28", "", ""],
-          ["Tatiana Rodrigues Gomes", "29", "", ""],
-          ["Marcos Vinícius Araújo", "30", "", ""],
+          // AC (15 candidatos)
+          ["Candidato A", "1", "", ""],
+          ["Candidato B", "2", "", ""],
+          ["Candidato F", "6", "", ""],
+          ["Candidato I", "9", "", ""],
+          ["Candidato K", "11", "", ""],
+          ["Candidato L", "12", "", ""],
+          ["Candidato N", "14", "", ""],
+          ["Candidato O", "15", "", ""],
           
-          // Somente PN (5 candidatos)
-          ["Maria Aparecida Costa", "3", "1", ""],
-          ["João Pedro Almeida", "5", "2", ""],
-          ["Fernanda Lima Rodrigues", "7", "3", ""],
-          ["Amanda Cristina Rocha", "12", "5", ""],
-          ["Thiago Santos Barbosa", "16", "6", ""],
+          // PN (4 candidatos)
+          ["Candidato C", "3", "1", ""],
+          ["Candidato E", "5", "2", ""],
+          ["Candidato G", "7", "3", ""],
+          ["Candidato M", "13", "5", ""],
           
-          // Somente PcD (3 candidatos)
-          ["Ricardo Santos Pereira", "9", "", "1"],
-          ["Rodrigo Fernandes Lima", "14", "", "3"],
-          ["Mariana Vitória Campos", "18", "", "4"],
+          // PcD (2 candidatos)
+          ["Candidato D", "4", "", "1"],
+          ["Candidato H", "8", "", "2"],
           
-          // PN e PcD (interseção - 2 candidatos)
-          ["Renata Silva Oliveira", "10", "4", "2"],
-          ["Daniel Costa Almeida", "20", "7", "5"]
+          // PN e PcD (interseção - 1 candidato)
+          ["Candidato J", "10", "4", "3"]
         ];
 
         // Gera CSV (dados ordenados por classificacao_geral crescente)
@@ -4217,7 +4215,11 @@
 
         renderEditorAplicacao(bloco, blocoIndex);
 
-        renderEditorPreviewPadrao(bloco);
+        // Inicializa o padrão inline
+        blocoEmEdicao = blocoSelecionadoId;
+        padraoTemporario = JSON.parse(JSON.stringify(bloco.padrao));
+        renderModalPattern();
+        analisarPadraoModal();
 
         lucide.createIcons();
         setTimeout(initTooltips, 100);
@@ -4313,29 +4315,6 @@
         }
       }
 
-      function renderEditorPreviewPadrao(bloco) {
-        const container = document.getElementById('editorPreviewPadrao');
-        
-        if (!bloco.padrao || bloco.padrao.length === 0) {
-          container.innerHTML = '<span class="text-sm text-gray-400 italic">Padrão vazio</span>';
-          return;
-        }
-
-        let html = '';
-        bloco.padrao.forEach(regra => {
-          const cotaConfig = getCotaConfig(regra.tipo);
-          for (let i = 0; i < regra.repeticoes; i++) {
-            html += `
-              <span class="inline-flex items-center justify-center w-10 h-10 ${cotaConfig.cor.bg} ${cotaConfig.cor.text} border ${cotaConfig.cor.border} rounded-lg text-xs font-bold">
-                ${regra.tipo}
-              </span>
-            `;
-          }
-        });
-        
-        container.innerHTML = html;
-      }
-
       function validarPercentuaisEditor(bloco) {
         const resultado = ValidationManager.validarPercentuais(bloco.percentuais);
         const validationDiv = document.getElementById('editorPercentValidation');
@@ -4374,7 +4353,6 @@
         const editorResetBtn = document.getElementById('editorResetBloco');
         const editorRemoverBtn = document.getElementById('editorRemoverBloco');
         const editorPosicaoFim = document.getElementById('editorPosicaoFim');
-        const editorEditarPadrao = document.getElementById('editorEditarPadrao');
 
         if (addBlocoBtn) {
           addBlocoBtn.addEventListener('click', adicionarBloco);
@@ -4401,12 +4379,6 @@
             if (e.target.hasAttribute('readonly')) return;
             
             if (blocoSelecionadoId) alterarLimiteBloco(blocoSelecionadoId, e.target.value);
-          });
-        }
-
-        if (editorEditarPadrao) {
-          editorEditarPadrao.addEventListener('click', () => {
-            if (blocoSelecionadoId) editarBloco(blocoSelecionadoId);
           });
         }
       }
@@ -4439,88 +4411,10 @@
       }
 
       // ============================================
-      // MODAL DE EDIÇÃO DE PADRÃO
+      // EDITOR INLINE DE PADRÃO (somente reordenação)
       // ============================================
 
       let padraoTemporario = [];
-
-      function editarBloco(blocoId) {
-        const blocoIndex = blocosDistribuicao.findIndex(b => b.id === blocoId);
-        const bloco = blocosDistribuicao[blocoIndex];
-        
-        if (!bloco) return;
-
-        blocoEmEdicao = blocoId;
-        padraoTemporario = JSON.parse(JSON.stringify(bloco.padrao));
-
-        const numeroBloco = blocoIndex + 1;
-        const rangeTexto = BlocoHelper.calcularRangeBloco(bloco, blocoIndex, blocosDistribuicao);
-        document.getElementById('editPatternBlocoNome').textContent = `Bloco ${numeroBloco} • ${rangeTexto}`;
-
-        renderModalPattern();
-        analisarPadraoModal();
-
-        document.getElementById('editPatternModal').classList.remove('hidden');
-        ScrollManager.disable();
-        lucide.createIcons();
-
-        setupModalPatternButtons();
-      }
-
-      function closeEditPatternModal() {
-        const modal = document.getElementById('editPatternModal');
-        modal.classList.add('closing');
-
-        setTimeout(() => {
-          modal.classList.remove('closing');
-          modal.classList.add('hidden');
-          ScrollManager.enable();
-          blocoEmEdicao = null;
-          padraoTemporario = [];
-        }, CONFIG.UI.MODAL_TRANSITION_DELAY);
-      }
-
-      document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') {
-          const modal = document.getElementById('editPatternModal');
-          if (!modal.classList.contains('hidden')) {
-            closeEditPatternModal();
-          }
-        }
-      });
-
-      function setupModalPatternButtons() {
-        // Remove listeners antigos
-        const btnAC = document.getElementById('modalAddAC');
-        const btnPN = document.getElementById('modalAddPN');
-        const btnPcD = document.getElementById('modalAddPcD');
-
-        btnAC.replaceWith(btnAC.cloneNode(true));
-        btnPN.replaceWith(btnPN.cloneNode(true));
-        btnPcD.replaceWith(btnPcD.cloneNode(true));
-
-        // Adiciona novos listeners
-        document.getElementById('modalAddAC').addEventListener('click', () => adicionarVagaModal('AC'));
-        document.getElementById('modalAddPN').addEventListener('click', () => adicionarVagaModal('PN'));
-        document.getElementById('modalAddPcD').addEventListener('click', () => adicionarVagaModal('PcD'));
-      }
-
-      function adicionarVagaModal(tipo) {
-        padraoTemporario.push({ tipo, repeticoes: 1 });
-        renderModalPattern();
-        analisarPadraoModal();
-      }
-
-      function removerVagaModal(index) {
-        const items = [...document.getElementById('modalPatternContainer').children];
-        if (items.length <= CONFIG.VALIDACAO.MIN_VAGAS_PADRAO) {
-          showAlert(CONFIG.MENSAGENS.ERRO.MIN_VAGAS, 'error');
-          return;
-        }
-        items[index].remove();
-        atualizarPadraoModalDePosicoes();
-        analisarPadraoModal();
-      }
 
       function renderModalPattern() {
         const container = document.getElementById('modalPatternContainer');
@@ -4530,7 +4424,7 @@
           container.innerHTML = `
             <div class="col-span-full text-center py-8 text-gray-400">
               <i data-lucide="inbox" class="w-8 h-8 mx-auto mb-2"></i>
-              <p class="text-sm">Nenhuma vaga no padrão</p>
+              <p class="text-sm">Padrão vazio</p>
             </div>
           `;
           lucide.createIcons();
@@ -4555,10 +4449,9 @@
             item.setAttribute('aria-label', `Vaga ${posicao}, tipo ${cotaConfig.nome}`);
             
             item.innerHTML = `
-              <div class="text-lg font-bold text-gray-900">${posicao}ª</div>
-              <div class="${colorClass} border-2 rounded-lg p-3 relative w-full bloco-modal">
-                <div class="text-xs font-medium text-gray-600 mb-1">${posicao}ª</div>
-                <div class="text-lg font-bold">${regra.tipo}</div>
+              <div class="text-xl font-bold text-gray-900 text-center">${posicao}ª</div>
+              <div class="${colorClass} border-2 rounded-lg p-1.5 relative w-full bloco-modal flex items-center justify-center">
+                <div class="text-xl font-bold">${regra.tipo}</div>
               </div>
             `;
 
@@ -4633,6 +4526,14 @@
         });
         
         padraoTemporario = novoPadrao;
+
+        // Auto-salva diretamente no bloco (sem botão de salvar)
+        const bloco = blocosDistribuicao.find(b => b.id === blocoEmEdicao);
+        if (bloco) {
+          bloco.padrao = JSON.parse(JSON.stringify(padraoTemporario));
+          renderListaBlocos();
+        }
+
         renderModalPattern();
       }
 
@@ -4669,17 +4570,15 @@
           const status = getStatusColor(percentuaisAtuais[tipo], bloco.percentuais[tipo]);
 
           statsHTML += `
-            <div class="p-3 ${status.bg} border ${status.border} rounded-lg">
-              <div class="flex items-center justify-between mb-2">
-                <div class="flex items-center gap-1.5 min-w-0 flex-1">
-                  <span class="text-xs font-medium text-gray-600">
-                    ${cotaConfig.nome} (${tipo})
-                  </span>
-                </div>
+            <div class="p-3 ${status.bg} border ${status.border} rounded-lg min-w-0">
+              <div class="flex items-center justify-between gap-0.5 mb-2">
+                <span class="text-xs font-medium text-gray-600 truncate">${cotaConfig.nome} <span class="whitespace-nowrap">(${tipo})</span></span>
                 <i data-lucide="${status.icon}" class="w-4 h-4 ${status.text} flex-shrink-0"></i>
               </div>
-              <div class="text-2xl font-bold ${status.text}">${percentuaisAtuais[tipo]}%</div>
-              <div class="text-xs text-gray-600 mt-1">${contadores[tipo]}/${totalVagas} • Meta: ${bloco.percentuais[tipo]}%</div>
+              <div class="flex items-baseline justify-between gap-2 flex-wrap">
+                <div class="text-2xl font-bold ${status.text} whitespace-nowrap">${percentuaisAtuais[tipo]}%</div>
+                <div class="text-xs text-gray-600 whitespace-nowrap">${contadores[tipo]}/${totalVagas} • Meta: ${bloco.percentuais[tipo]}%</div>
+              </div>
             </div>
           `;
         });
@@ -4689,20 +4588,6 @@
         setTimeout(initTooltips, 100);
       }
 
-      function salvarPadraoBloco() {
-        if (padraoTemporario.length === 0) {
-          showAlert('O padrão não pode estar vazio', 'error');
-          return;
-        }
-
-        const bloco = blocosDistribuicao.find(b => b.id === blocoEmEdicao);
-        if (!bloco) return;
-
-        bloco.padrao = JSON.parse(JSON.stringify(padraoTemporario));
-        renderBlocos();
-        closeEditPatternModal();
-        showToast('Padrão salvo com sucesso', 'success');
-      }
 
       function renderPreviewPadrao(padrao) {
         if (!padrao || padrao.length === 0) {
@@ -5360,7 +5245,7 @@
     <!-- Rodapé -->
     <footer class="py-2 px-4">
       <p class="text-center text-xs text-gray-400">
-        Desenvolvido por Unidade Avançada de Inovação em Laboratório - UAILAB
+        Desenvolvido pela Unidade Avançada de Inovação em Laboratório - UAILAB
       </p>
     </footer>
   </body>
