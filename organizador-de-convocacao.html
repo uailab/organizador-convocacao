@@ -1225,7 +1225,7 @@
                       <th
                         class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase"
                       >
-                        Ordem de Chamada
+                        Ordem de Convocação
                       </th>
                       <th
                         class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase"
@@ -2817,7 +2817,7 @@
 
         exportarResultadoCSV(resultado, nomeArquivo = null) {
           const csv = [
-            ["ORDEM DE CHAMADA", "NOME DO CANDIDATO(A)", "CLASSIFICAÇÃO GERAL", "TIPO DE VAGA"],
+            ["ORDEM DE CONVOCAÇÃO", "NOME DO CANDIDATO(A)", "CLASSIFICAÇÃO GERAL", "TIPO DE VAGA"],
             ...resultado.map((r) => [
               r.posicao,
               `"${r.nome}"`,
