@@ -709,13 +709,17 @@
         contarVagasBloco(bloco) {
           return bloco.padrao.reduce((sum, p) => sum + p.repeticoes, 0);
         },
-        calcularRangeBloco(bloco, blocoIndex, blocos) {
+        calcularPosicaoInicioBloco(blocoIndex, blocos) {
           let inicio = 1;
           for (let i = 0; i < blocoIndex; i++) {
             if (blocos[i].quantidadeTotal) {
               inicio = blocos[i].quantidadeTotal + 1;
             }
           }
+          return inicio;
+        },
+        calcularRangeBloco(bloco, blocoIndex, blocos) {
+          const inicio = this.calcularPosicaoInicioBloco(blocoIndex, blocos);
           const fim = bloco.quantidadeTotal;
           if (fim == null) {
             return inicio === 1 ? "Todas as posições" : `Posições ${inicio} em diante`;
@@ -1273,7 +1277,9 @@
           return;
         }
 
-        let posicao = 1, globalIndex = 0;
+        const blocoIndex = blocosDistribuicao.findIndex(b => b.id === blocoEmEdicao);
+        let posicao = BlocoHelper.calcularPosicaoInicioBloco(blocoIndex, blocosDistribuicao);
+        let globalIndex = 0;
         padraoTemporario.forEach(regra => {
           for (let i = 0; i < regra.repeticoes; i++) {
             const item = document.createElement('div');
@@ -1283,16 +1289,24 @@
 
             const cotaConfig = getCotaConfig(regra.tipo);
             const colorClass = `${cotaConfig.cor.bg} ${cotaConfig.cor.text} ${cotaConfig.cor.border}`;
+            const posClass = posicao < 100
+              ? 'text-lg font-bold text-gray-900'
+              : posicao < 1000
+                ? 'text-sm font-bold text-gray-700'
+                : 'text-xs font-bold text-gray-500';
+            const posInnerClass = posicao < 1000
+              ? 'text-xs font-medium text-gray-600 mb-1'
+              : 'text-xs font-normal text-gray-400 mb-1';
 
             item.className = 'flex flex-col items-center gap-1 cursor-move';
 
             item.innerHTML = `
-              <div class="text-lg font-bold text-gray-900">${posicao}ª</div>
+              <div class="h-7 flex items-center justify-center ${posClass}">${posicao}ª</div>
               <div class="${colorClass} border-2 rounded-lg p-3 relative w-full bloco-modal">
                 <button class="absolute top-1 right-1 w-5 h-5 bg-white rounded-full flex items-center justify-center hover:bg-gray-100 text-gray-900" onclick="removerVagaModal(${globalIndex})">
                   <i data-lucide="x" class="w-3 h-3"></i>
                 </button>
-                <div class="text-xs font-medium text-gray-600 mb-1">${posicao}ª</div>
+                <div class="${posInnerClass}">${posicao}ª</div>
                 <div class="text-lg font-bold">${regra.tipo}</div>
               </div>
             `;

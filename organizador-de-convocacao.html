@@ -742,7 +742,7 @@
               <h1 class="text-xl md:text-2xl font-semibold text-gray-900">
                 Organizador de Convocação
               </h1>
-              <p class="text-sm text-gray-500 hidden sm:block">Distribuição de vagas por cotas - Estagiários</p>
+              <p class="text-sm text-gray-500 hidden sm:block">Ordem de convocação conforme cotas - Estagiários</p>
             </div>
           </div>
           
@@ -1697,13 +1697,18 @@
           return limites;
         },
 
-        calcularRangeBloco(bloco, blocoIndex, blocos) {
+        calcularPosicaoInicioBloco(blocoIndex, blocos) {
           let inicio = 1;
           for (let i = 0; i < blocoIndex; i++) {
             if (blocos[i].quantidadeTotal) {
               inicio = blocos[i].quantidadeTotal + 1;
             }
           }
+          return inicio;
+        },
+
+        calcularRangeBloco(bloco, blocoIndex, blocos) {
+          const inicio = this.calcularPosicaoInicioBloco(blocoIndex, blocos);
           const fim = bloco.quantidadeTotal;
           if (fim == null) {
             return inicio === 1 ? "Todas as posições" : `Posições ${inicio} em diante`;
@@ -4481,8 +4486,10 @@
           return;
         }
 
-        let posicao = 1, globalIndex = 0;
-        
+        const blocoIndex = blocosDistribuicao.findIndex(b => b.id === blocoEmEdicao);
+        let posicao = BlocoHelper.calcularPosicaoInicioBloco(blocoIndex, blocosDistribuicao);
+        let globalIndex = 0;
+
         padraoTemporario.forEach(regra => {
           for (let i = 0; i < regra.repeticoes; i++) {
             const item = document.createElement('div');
@@ -4493,13 +4500,18 @@
 
             const cotaConfig = getCotaConfig(regra.tipo);
             const colorClass = `${cotaConfig.cor.bg} ${cotaConfig.cor.text} ${cotaConfig.cor.border}`;
+            const posClass = posicao < 100
+              ? 'text-xl font-bold text-gray-900 text-center'
+              : posicao < 1000
+                ? 'text-sm font-bold text-gray-700 text-center'
+                : 'text-xs font-bold text-gray-500 text-center';
 
             item.className = 'flex flex-col items-center gap-1 cursor-move';
             item.setAttribute('role', 'button');
             item.setAttribute('aria-label', `Vaga ${posicao}, tipo ${cotaConfig.nome}`);
-            
+
             item.innerHTML = `
-              <div class="text-xl font-bold text-gray-900 text-center">${posicao}ª</div>
+              <div class="h-7 flex items-center justify-center ${posClass}">${posicao}ª</div>
               <div class="${colorClass} border-2 rounded-lg p-1.5 relative w-full bloco-modal flex items-center justify-center">
                 <div class="text-xl font-bold">${regra.tipo}</div>
               </div>
@@ -4509,7 +4521,7 @@
             item.addEventListener('dragover', handleModalDragOver);
             item.addEventListener('drop', handleModalDrop);
             item.addEventListener('dragend', handleModalDragEnd);
-            
+
             container.appendChild(item);
             posicao++;
             globalIndex++;
@@ -4844,8 +4856,9 @@
       function renderPadrao() {
         const container = document.getElementById("patternContainer");
         container.innerHTML = "";
-        let posicao = 1,
-          globalIndex = 0;
+        const blocoIdx = blocosDistribuicao.findIndex(b => b.id === blocoSelecionadoId);
+        let posicao = BlocoHelper.calcularPosicaoInicioBloco(blocoIdx, blocosDistribuicao);
+        let globalIndex = 0;
         padraoAtual.forEach((regra) => {
           for (let i = 0; i < regra.repeticoes; i++) {
             const item = document.createElement("div");
@@ -4856,6 +4869,9 @@
 
             const cotaConfig = getCotaConfig(regra.tipo);
             const colorClass = `${cotaConfig.cor.bg} ${cotaConfig.cor.text} ${cotaConfig.cor.border}`;
+            const posClass = posicao < 1000
+              ? 'text-xs font-medium text-gray-500 mb-1'
+              : 'text-xs font-normal text-gray-400 mb-1';
 
             item.className = `${colorClass} border-2 rounded-lg p-3 cursor-move hover:shadow-md transition-shadow relative`;
             item.setAttribute("role", "button");
@@ -4867,7 +4883,7 @@
           <button class="absolute top-1 right-1 w-5 h-5 bg-white rounded-full flex items-center justify-center hover:bg-red-50 text-red-600" onclick="removerVaga(${globalIndex})" aria-label="Remover vaga ${posicao}">
               <i data-lucide="x" class="w-3 h-3" aria-hidden="true"></i>
           </button>
-          <div class="text-xs font-medium text-gray-500 mb-1" aria-hidden="true">${posicao}ª</div>
+          <div class="${posClass}" aria-hidden="true">${posicao}ª</div>
           <div class="text-lg font-bold">${regra.tipo}</div>
       `;
             item.addEventListener("dragstart", handleDragStart);
