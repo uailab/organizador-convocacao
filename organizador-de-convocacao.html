@@ -1004,16 +1004,23 @@
 
           <!-- Tab: Configuração -->
           <div id="content-config" class="tab-content hidden">
-            
-            <!-- Info Blocos -->
-            <div class="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <div class="flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="w-5 h-5 text-blue-600 flex-shrink-0"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                <span class="text-sm text-blue-900">Configure os blocos de distribuição. Cada bloco define um padrão que se repete até o limite informado.</span>
-              </div>
-            </div>
 
-            <!-- Layout Master-Detail -->
+            <!-- Card: Configuração dos blocos de distribuição -->
+            <div class="border border-main rounded-lg mb-6 overflow-hidden">
+
+              <!-- Card Header -->
+              <div class="bg-gray-100 px-5 py-4 border-b border-main flex items-center gap-2">
+                <i data-lucide="layers" class="w-5 h-5 text-gray-700"></i>
+                <h3 class="font-semibold text-base text-gray-900">Configuração dos blocos de distribuição</h3>
+              </div>
+
+              <!-- Card Body -->
+              <div class="p-4">
+
+                <!-- Info Blocos -->
+                <p class="mb-6 text-sm text-gray-600 font-semibold">Configure os blocos de distribuição. Cada bloco define um padrão que se repete até o limite informado.</p>
+
+                <!-- Layout Master-Detail -->
             <div class="flex flex-col lg:flex-row gap-6">
               
               <!-- COLUNA ESQUERDA: Lista de Blocos (Master) -->
@@ -1125,7 +1132,10 @@
               </div>
               
             </div>
-            
+
+              </div>
+            </div>
+
             <!-- Botões de Navegação -->
             <div class="flex flex-col sm:flex-row justify-between gap-3 mt-6">
               <button
