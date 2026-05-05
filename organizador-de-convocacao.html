@@ -1005,6 +1005,89 @@
           <!-- Tab: Configuração -->
           <div id="content-config" class="tab-content hidden">
 
+            <!-- Card: Identificação do relatório final -->
+            <div class="border border-main rounded-lg mb-6 overflow-hidden">
+
+              <!-- Card Header -->
+              <div class="bg-gray-100 px-5 py-4 border-b border-main flex items-center gap-2">
+                <i data-lucide="file-search-corner" class="w-5 h-5 text-gray-700"></i>
+                <h3 class="font-semibold text-base text-gray-900">Identificação do relatório final</h3>
+              </div>
+
+              <!-- Card Body -->
+              <div class="p-4">
+                <p class="mb-6 text-sm text-gray-600 font-semibold">Preencha as informações abaixo para identificar o relatório final gerado ao processar a convocação.</p>
+
+                <!-- Campos de identificação -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+
+                  <!-- Campo: Nome da Comarca -->
+                  <div class="flex flex-col gap-1">
+                    <label for="comarca" class="text-sm font-bold text-gray-900">
+                      Nome da Comarca <span class="text-red-500">*</span>
+                    </label>
+                    <div class="flex items-center gap-2">
+                      <div class="relative w-full">
+                        <select id="comarca" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm italic appearance-none bg-white pr-8">
+                          <option value="">Selecione uma comarca</option>
+                        </select>
+                        <i data-lucide="chevron-down" class="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none"></i>
+                      </div>
+                      <span id="icon-comarca" class="hidden flex-shrink-0"></span>
+                    </div>
+                    <p id="error-comarca" class="text-xs text-red-500 italic hidden">Selecione uma comarca.</p>
+                  </div>
+
+                  <!-- Campo: Nº e Ano do Edital -->
+                  <div class="flex flex-col gap-1">
+                    <label for="nEdital" class="text-sm font-bold text-gray-900">
+                      Nº e Ano do Edital <span class="text-red-500">*</span>
+                    </label>
+                    <div class="flex items-center gap-2">
+                      <input type="text" id="nEdital" placeholder="Ex: 01/2025" maxlength="7"
+                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm italic" />
+                      <span id="icon-nEdital" class="hidden flex-shrink-0"></span>
+                    </div>
+                    <p id="error-nEdital" class="text-xs text-red-500 italic hidden"></p>
+                  </div>
+
+                  <!-- Campo: Tipo do Curso -->
+                  <div class="flex flex-col gap-1">
+                    <label for="tipoCurso" class="text-sm font-bold text-gray-900">
+                      Tipo do Curso <span class="text-red-500">*</span>
+                    </label>
+                    <div class="flex items-center gap-2">
+                      <div class="relative w-full">
+                        <select id="tipoCurso" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm italic appearance-none bg-white pr-8">
+                          <option value="">Selecione o tipo</option>
+                          <option value="Graduação">Graduação</option>
+                          <option value="Pós-graduação">Pós-graduação</option>
+                        </select>
+                        <i data-lucide="chevron-down" class="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none"></i>
+                      </div>
+                      <span id="icon-tipoCurso" class="hidden flex-shrink-0"></span>
+                    </div>
+                    <p id="error-tipoCurso" class="text-xs text-red-500 italic hidden">Selecione o tipo do curso.</p>
+                  </div>
+
+                  <!-- Campo: Nome do Curso -->
+                  <div class="flex flex-col gap-1">
+                    <label for="nomeCurso" class="text-sm font-bold text-gray-900">
+                      Nome do Curso <span class="text-red-500">*</span>
+                    </label>
+                    <div class="flex items-center gap-2">
+                      <input type="text" id="nomeCurso" placeholder="Ex: Direito"
+                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm italic" />
+                      <span id="icon-nomeCurso" class="hidden flex-shrink-0"></span>
+                    </div>
+                    <p id="error-nomeCurso" class="text-xs text-red-500 italic hidden">Informe o nome do curso (mínimo 3 caracteres).</p>
+                  </div>
+
+                </div>
+              </div>
+
+            </div>
+
             <!-- Card: Configuração dos blocos de distribuição -->
             <div class="border border-main rounded-lg mb-6 overflow-hidden">
 
@@ -1029,7 +1112,6 @@
                 <!-- Cabeçalho da Lista -->
                 <div class="bg-gray-50 border border-main rounded-t-lg px-5 py-4 flex items-center justify-between">
                   <div class="flex items-center gap-2">
-                    <i data-lucide="layers" class="w-5 h-5 text-gray-700"></i>
                     <h3 class="font-semibold text-base text-gray-900">Blocos de Distribuição</h3>
                   </div>
                 </div>
@@ -1636,6 +1718,307 @@
       const getCotasDisponiveis = () => Object.keys(CONFIG.TIPOS_COTAS);
       const isCotaValida = (tipoCota) =>
         CONFIG.TIPOS_COTAS.hasOwnProperty(tipoCota);
+
+      const COMARCAS_LIST = [
+        { codigo: 2, comarca: "ABAETÉ" },
+        { codigo: 3, comarca: "ABRE CAMPO" },
+        { codigo: 5, comarca: "AÇUCENA" },
+        { codigo: 9, comarca: "ÁGUAS FORMOSAS" },
+        { codigo: 11, comarca: "AIMORÉS" },
+        { codigo: 12, comarca: "AIURUOCA" },
+        { codigo: 15, comarca: "ALÉM PARAÍBA" },
+        { codigo: 16, comarca: "ALFENAS" },
+        { codigo: 17, comarca: "ALMENARA" },
+        { codigo: 19, comarca: "ALPINÓPOLIS" },
+        { codigo: 21, comarca: "ALTO RIO DOCE" },
+        { codigo: 23, comarca: "ALVINÓPOLIS" },
+        { codigo: 26, comarca: "ANDRADAS" },
+        { codigo: 28, comarca: "ANDRELÂNDIA" },
+        { codigo: 34, comarca: "ARAÇUAÍ" },
+        { codigo: 35, comarca: "ARAGUARI" },
+        { codigo: 40, comarca: "ARAXÁ" },
+        { codigo: 42, comarca: "ARCOS" },
+        { codigo: 43, comarca: "AREADO" },
+        { codigo: 778, comarca: "ARINOS" },
+        { codigo: 49, comarca: "BAEPENDI" },
+        { codigo: 51, comarca: "BAMBUÍ" },
+        { codigo: 54, comarca: "BARÃO DE COCAIS" },
+        { codigo: 56, comarca: "BARBACENA" },
+        { codigo: 59, comarca: "BARROSO" },
+        { codigo: 24, comarca: "BELO HORIZONTE" },
+        { codigo: 64, comarca: "BELO VALE" },
+        { codigo: 27, comarca: "BETIM" },
+        { codigo: 69, comarca: "BICAS" },
+        { codigo: 71, comarca: "BOA ESPERANÇA" },
+        { codigo: 73, comarca: "BOCAIÚVA" },
+        { codigo: 74, comarca: "BOM DESPACHO" },
+        { codigo: 80, comarca: "BOM SUCESSO" },
+        { codigo: 81, comarca: "BONFIM" },
+        { codigo: 82, comarca: "BONFINÓPOLIS DE MINAS" },
+        { codigo: 83, comarca: "BORDA DA MATA" },
+        { codigo: 84, comarca: "BOTELHOS" },
+        { codigo: 86, comarca: "BRASÍLIA DE MINAS" },
+        { codigo: 89, comarca: "BRAZÓPOLIS" },
+        { codigo: 90, comarca: "BRUMADINHO" },
+        { codigo: 91, comarca: "BUENO BRANDÃO" },
+        { codigo: 92, comarca: "BUENÓPOLIS" },
+        { codigo: 93, comarca: "BURITIS" },
+        { codigo: 95, comarca: "CABO VERDE" },
+        { codigo: 97, comarca: "CACHOEIRA DE MINAS" },
+        { codigo: 45, comarca: "CAETÉ" },
+        { codigo: 103, comarca: "CALDAS" },
+        { codigo: 878, comarca: "CAMANDUCAIA" },
+        { codigo: 106, comarca: "CAMBUÍ" },
+        { codigo: 107, comarca: "CAMBUQUIRA" },
+        { codigo: 109, comarca: "CAMPANHA" },
+        { codigo: 110, comarca: "CAMPESTRE" },
+        { codigo: 111, comarca: "CAMPINA VERDE" },
+        { codigo: 112, comarca: "CAMPO BELO" },
+        { codigo: 115, comarca: "CAMPOS ALTOS" },
+        { codigo: 116, comarca: "CAMPOS GERAIS" },
+        { codigo: 118, comarca: "CANÁPOLIS" },
+        { codigo: 120, comarca: "CANDEIAS" },
+        { codigo: 123, comarca: "CAPELINHA" },
+        { codigo: 126, comarca: "CAPINÓPOLIS" },
+        { codigo: 132, comarca: "CARANDAÍ" },
+        { codigo: 133, comarca: "CARANGOLA" },
+        { codigo: 134, comarca: "CARATINGA" },
+        { codigo: 137, comarca: "CARLOS CHAGAS" },
+        { codigo: 140, comarca: "CARMO DA MATA" },
+        { codigo: 141, comarca: "CARMO DE MINAS" },
+        { codigo: 142, comarca: "CARMO DO CAJURU" },
+        { codigo: 143, comarca: "CARMO DO PARANAÍBA" },
+        { codigo: 144, comarca: "CARMO DO RIO CLARO" },
+        { codigo: 879, comarca: "CARMÓPOLIS DE MINAS" },
+        { codigo: 151, comarca: "CÁSSIA" },
+        { codigo: 153, comarca: "CATAGUASES" },
+        { codigo: 155, comarca: "CAXAMBU" },
+        { codigo: 166, comarca: "CLÁUDIO" },
+        { codigo: 172, comarca: "CONCEIÇÃO DAS ALAGOAS" },
+        { codigo: 175, comarca: "CONCEIÇÃO DO MATO DENTRO" },
+        { codigo: 177, comarca: "CONCEIÇÃO DO RIO VERDE" },
+        { codigo: 180, comarca: "CONGONHAS" },
+        { codigo: 182, comarca: "CONQUISTA" },
+        { codigo: 183, comarca: "CONSELHEIRO LAFAIETE" },
+        { codigo: 184, comarca: "CONSELHEIRO PENA" },
+        { codigo: 79, comarca: "CONTAGEM" },
+        { codigo: 775, comarca: "CORAÇÃO DE JESUS" },
+        { codigo: 191, comarca: "CORINTO" },
+        { codigo: 193, comarca: "COROMANDEL" },
+        { codigo: 194, comarca: "CORONEL FABRICIANO" },
+        { codigo: 205, comarca: "CRISTINA" },
+        { codigo: 208, comarca: "CRUZÍLIA" },
+        { codigo: 209, comarca: "CURVELO" },
+        { codigo: 216, comarca: "DIAMANTINA" },
+        { codigo: 220, comarca: "DIVINO" },
+        { codigo: 223, comarca: "DIVINÓPOLIS" },
+        { codigo: 232, comarca: "DORES DO INDAIÁ" },
+        { codigo: 236, comarca: "ELÓI MENDES" },
+        { codigo: 239, comarca: "ENTRE RIOS DE MINAS" },
+        { codigo: 240, comarca: "ERVÁLIA" },
+        { codigo: 241, comarca: "ESMERALDAS" },
+        { codigo: 242, comarca: "ESPERA FELIZ" },
+        { codigo: 243, comarca: "ESPINOSA" },
+        { codigo: 248, comarca: "ESTRELA DO SUL" },
+        { codigo: 249, comarca: "EUGENÓPOLIS" },
+        { codigo: 251, comarca: "EXTREMA" },
+        { codigo: 259, comarca: "FERROS" },
+        { codigo: 261, comarca: "FORMIGA" },
+        { codigo: 267, comarca: "FRANCISCO SÁ" },
+        { codigo: 271, comarca: "FRUTAL" },
+        { codigo: 273, comarca: "GALILÉIA" },
+        { codigo: 105, comarca: "GOVERNADOR VALADARES" },
+        { codigo: 278, comarca: "GRÃO-MOGOL" },
+        { codigo: 280, comarca: "GUANHÃES" },
+        { codigo: 281, comarca: "GUAPÉ" },
+        { codigo: 283, comarca: "GUARANÉSIA" },
+        { codigo: 284, comarca: "GUARANI" },
+        { codigo: 287, comarca: "GUAXUPÉ" },
+        { codigo: 295, comarca: "IBIÁ" },
+        { codigo: 297, comarca: "IBIRACI" },
+        { codigo: 114, comarca: "IBIRITÉ" },
+        { codigo: 301, comarca: "IGARAPÉ" },
+        { codigo: 303, comarca: "IGUATAMA" },
+        { codigo: 309, comarca: "INHAPIM" },
+        { codigo: 312, comarca: "IPANEMA" },
+        { codigo: 313, comarca: "IPATINGA" },
+        { codigo: 317, comarca: "ITABIRA" },
+        { codigo: 319, comarca: "ITABIRITO" },
+        { codigo: 322, comarca: "ITAGUARA" },
+        { codigo: 324, comarca: "ITAJUBÁ" },
+        { codigo: 325, comarca: "ITAMARANDIBA" },
+        { codigo: 327, comarca: "ITAMBACURI" },
+        { codigo: 329, comarca: "ITAMOGI" },
+        { codigo: 330, comarca: "ITAMONTE" },
+        { codigo: 331, comarca: "ITANHANDU" },
+        { codigo: 332, comarca: "ITANHOMI" },
+        { codigo: 334, comarca: "ITAPAGIPE" },
+        { codigo: 335, comarca: "ITAPECERICA" },
+        { codigo: 338, comarca: "ITAÚNA" },
+        { codigo: 342, comarca: "ITUIUTABA" },
+        { codigo: 343, comarca: "ITUMIRIM" },
+        { codigo: 344, comarca: "ITURAMA" },
+        { codigo: 346, comarca: "JABOTICATUBAS" },
+        { codigo: 347, comarca: "JACINTO" },
+        { codigo: 348, comarca: "JACUÍ" },
+        { codigo: 349, comarca: "JACUTINGA" },
+        { codigo: 738, comarca: "JAÍBA" },
+        { codigo: 351, comarca: "JANAÚBA" },
+        { codigo: 352, comarca: "JANUÁRIA" },
+        { codigo: 355, comarca: "JEQUERI" },
+        { codigo: 358, comarca: "JEQUITINHONHA" },
+        { codigo: 362, comarca: "JOÃO MONLEVADE" },
+        { codigo: 363, comarca: "JOÃO PINHEIRO" },
+        { codigo: 740, comarca: "JUATUBA" },
+        { codigo: 145, comarca: "JUIZ DE FORA" },
+        { codigo: 372, comarca: "LAGOA DA PRATA" },
+        { codigo: 148, comarca: "LAGOA SANTA" },
+        { codigo: 377, comarca: "LAJINHA" },
+        { codigo: 378, comarca: "LAMBARI" },
+        { codigo: 382, comarca: "LAVRAS" },
+        { codigo: 384, comarca: "LEOPOLDINA" },
+        { codigo: 386, comarca: "LIMA DUARTE" },
+        { codigo: 388, comarca: "LUZ" },
+        { codigo: 390, comarca: "MACHADO" },
+        { codigo: 392, comarca: "MALACACHETA" },
+        { codigo: 393, comarca: "MANGA" },
+        { codigo: 394, comarca: "MANHUAÇU" },
+        { codigo: 395, comarca: "MANHUMIRIM" },
+        { codigo: 396, comarca: "MANTENA" },
+        { codigo: 398, comarca: "MAR DE ESPANHA" },
+        { codigo: 400, comarca: "MARIANA" },
+        { codigo: 405, comarca: "MARTINHO CAMPOS" },
+        { codigo: 407, comarca: "MATEUS LEME" },
+        { codigo: 408, comarca: "MATIAS BARBOSA" },
+        { codigo: 411, comarca: "MATOZINHOS" },
+        { codigo: 414, comarca: "MEDINA" },
+        { codigo: 416, comarca: "MERCÊS" },
+        { codigo: 417, comarca: "MESQUITA" },
+        { codigo: 418, comarca: "MINAS NOVAS" },
+        { codigo: 421, comarca: "MIRADOURO" },
+        { codigo: 422, comarca: "MIRAÍ" },
+        { codigo: 427, comarca: "MONTALVÂNIA" },
+        { codigo: 428, comarca: "MONTE ALEGRE DE MINAS" },
+        { codigo: 429, comarca: "MONTE AZUL" },
+        { codigo: 430, comarca: "MONTE BELO" },
+        { codigo: 431, comarca: "MONTE CARMELO" },
+        { codigo: 432, comarca: "MONTE SANTO DE MINAS" },
+        { codigo: 434, comarca: "MONTE SIÃO" },
+        { codigo: 433, comarca: "MONTES CLAROS" },
+        { codigo: 435, comarca: "MORADA NOVA DE MINAS" },
+        { codigo: 439, comarca: "MURIAÉ" },
+        { codigo: 440, comarca: "MUTUM" },
+        { codigo: 441, comarca: "MUZAMBINHO" },
+        { codigo: 443, comarca: "NANUQUE" },
+        { codigo: 444, comarca: "NATÉRCIA" },
+        { codigo: 446, comarca: "NEPOMUCENO" },
+        { codigo: 447, comarca: "NOVA ERA" },
+        { codigo: 188, comarca: "NOVA LIMA" },
+        { codigo: 450, comarca: "NOVA PONTE" },
+        { codigo: 451, comarca: "NOVA RESENDE" },
+        { codigo: 452, comarca: "NOVA SERRANA" },
+        { codigo: 453, comarca: "NOVO CRUZEIRO" },
+        { codigo: 456, comarca: "OLIVEIRA" },
+        { codigo: 459, comarca: "OURO BRANCO" },
+        { codigo: 460, comarca: "OURO FINO" },
+        { codigo: 461, comarca: "OURO PRETO" },
+        { codigo: 467, comarca: "PALMA" },
+        { codigo: 471, comarca: "PARÁ DE MINAS" },
+        { codigo: 470, comarca: "PARACATU" },
+        { codigo: 472, comarca: "PARAGUAÇU" },
+        { codigo: 473, comarca: "PARAISÓPOLIS" },
+        { codigo: 474, comarca: "PARAOPEBA" },
+        { codigo: 476, comarca: "PASSA QUATRO" },
+        { codigo: 477, comarca: "PASSA TEMPO" },
+        { codigo: 479, comarca: "PASSOS" },
+        { codigo: 480, comarca: "PATOS DE MINAS" },
+        { codigo: 481, comarca: "PATROCÍNIO" },
+        { codigo: 486, comarca: "PEÇANHA" },
+        { codigo: 487, comarca: "PEDRA AZUL" },
+        { codigo: 491, comarca: "PEDRALVA" },
+        { codigo: 210, comarca: "PEDRO LEOPOLDO" },
+        { codigo: 498, comarca: "PERDIZES" },
+        { codigo: 499, comarca: "PERDÕES" },
+        { codigo: 508, comarca: "PIRANGA" },
+        { codigo: 511, comarca: "PIRAPETINGA" },
+        { codigo: 512, comarca: "PIRAPORA" },
+        { codigo: 514, comarca: "PITANGUI" },
+        { codigo: 515, comarca: "PIUMHI" },
+        { codigo: 517, comarca: "POÇO FUNDO" },
+        { codigo: 518, comarca: "POÇOS DE CALDAS" },
+        { codigo: 520, comarca: "POMPÉU" },
+        { codigo: 521, comarca: "PONTE NOVA" },
+        { codigo: 522, comarca: "PORTEIRINHA" },
+        { codigo: 525, comarca: "POUSO ALEGRE" },
+        { codigo: 527, comarca: "PRADOS" },
+        { codigo: 528, comarca: "PRATA" },
+        { codigo: 529, comarca: "PRATÁPOLIS" },
+        { codigo: 534, comarca: "PRESIDENTE OLEGÁRIO" },
+        { codigo: 540, comarca: "RAUL SOARES" },
+        { codigo: 542, comarca: "RESENDE COSTA" },
+        { codigo: 543, comarca: "RESPLENDOR" },
+        { codigo: 231, comarca: "RIBEIRÃO DAS NEVES" },
+        { codigo: 549, comarca: "RIO CASCA" },
+        { codigo: 554, comarca: "RIO NOVO" },
+        { codigo: 555, comarca: "RIO PARANAÍBA" },
+        { codigo: 556, comarca: "RIO PARDO DE MINAS" },
+        { codigo: 557, comarca: "RIO PIRACICABA" },
+        { codigo: 558, comarca: "RIO POMBA" },
+        { codigo: 559, comarca: "RIO PRETO" },
+        { codigo: 560, comarca: "RIO VERMELHO" },
+        { codigo: 567, comarca: "SABARÁ" },
+        { codigo: 568, comarca: "SABINÓPOLIS" },
+        { codigo: 569, comarca: "SACRAMENTO" },
+        { codigo: 570, comarca: "SALINAS" },
+        { codigo: 572, comarca: "SANTA BÁRBARA" },
+        { codigo: 245, comarca: "SANTA LUZIA" },
+        { codigo: 582, comarca: "SANTA MARIA DO SUAÇUÍ" },
+        { codigo: 592, comarca: "SANTA RITA DE CALDAS" },
+        { codigo: 596, comarca: "SANTA RITA DO SAPUCAÍ" },
+        { codigo: 598, comarca: "SANTA VITÓRIA" },
+        { codigo: 604, comarca: "SANTO ANTÔNIO DO MONTE" },
+        { codigo: 607, comarca: "SANTOS DUMONT" },
+        { codigo: 610, comarca: "SÃO DOMINGOS DO PRATA" },
+        { codigo: 611, comarca: "SÃO FRANCISCO" },
+        { codigo: 620, comarca: "SÃO GONÇALO DO SAPUCAÍ" },
+        { codigo: 621, comarca: "SÃO GOTARDO" },
+        { codigo: 624, comarca: "SÃO JOÃO DA PONTE" },
+        { codigo: 625, comarca: "SÃO JOÃO DEL-REI" },
+        { codigo: 627, comarca: "SÃO JOÃO DO PARAÍSO" },
+        { codigo: 628, comarca: "SÃO JOÃO EVANGELISTA" },
+        { codigo: 629, comarca: "SÃO JOÃO NEPOMUCENO" },
+        { codigo: 637, comarca: "SÃO LOURENÇO" },
+        { codigo: 642, comarca: "SÃO ROMÃO" },
+        { codigo: 643, comarca: "SÃO ROQUE DE MINAS" },
+        { codigo: 647, comarca: "SÃO SEBASTIÃO DO PARAÍSO" },
+        { codigo: 657, comarca: "SENADOR FIRMINO" },
+        { codigo: 671, comarca: "SERRO" },
+        { codigo: 672, comarca: "SETE LAGOAS" },
+        { codigo: 674, comarca: "SILVIANÓPOLIS" },
+        { codigo: 680, comarca: "TAIOBEIRAS" },
+        { codigo: 684, comarca: "TARUMIRIM" },
+        { codigo: 685, comarca: "TEIXEIRAS" },
+        { codigo: 686, comarca: "TEÓFILO OTONI" },
+        { codigo: 687, comarca: "TIMÓTEO" },
+        { codigo: 689, comarca: "TIROS" },
+        { codigo: 692, comarca: "TOMBOS" },
+        { codigo: 693, comarca: "TRÊS CORAÇÕES" },
+        { codigo: 58, comarca: "TRÊS MARIAS" },
+        { codigo: 694, comarca: "TRÊS PONTAS" },
+        { codigo: 696, comarca: "TUPACIGUARA" },
+        { codigo: 697, comarca: "TURMALINA" },
+        { codigo: 699, comarca: "UBÁ" },
+        { codigo: 701, comarca: "UBERABA" },
+        { codigo: 702, comarca: "UBERLÂNDIA" },
+        { codigo: 704, comarca: "UNAÍ" },
+        { codigo: 707, comarca: "VARGINHA" },
+        { codigo: 708, comarca: "VÁRZEA DA PALMA" },
+        { codigo: 710, comarca: "VAZANTE" },
+        { codigo: 290, comarca: "VESPASIANO" },
+        { codigo: 713, comarca: "VIÇOSA" },
+        { codigo: 718, comarca: "VIRGINÓPOLIS" },
+        { codigo: 720, comarca: "VISCONDE DO RIO BRANCO" },
+      ];
 
       // ============================================
       // SCROLL MANAGEMENT
@@ -3152,6 +3535,7 @@
         setupPatternButtons();
         setupActions();
         setupMasterDetail();
+        setupFormIdentificacao();
         carregarConfigPadraoDoBackend();
         UIManager.keyboard.setup();
         UIManager.collapse.initializeCollapsed();
@@ -5037,10 +5421,164 @@
       }
 
       // ============================================
+      // FORMULÁRIO DE IDENTIFICAÇÃO
+      // ============================================
+
+      const reportIdentification = {
+        comarca: '',
+        nEdital: '',
+        tipoCurso: '',
+        nomeCurso: '',
+      };
+
+      let formIdentificacaoSubmetido = false;
+
+      function aplicarMascaraEdital(e) {
+        const input = e.target;
+        const cursorPos = input.selectionStart;
+        const oldValue = input.value;
+
+        const digitsBeforeCursor = oldValue.slice(0, cursorPos).replace(/\D/g, '').length;
+
+        let digits = oldValue.replace(/\D/g, '');
+        if (digits.length > 6) digits = digits.slice(0, 6);
+        const newValue = digits.length >= 2 ? digits.slice(0, 2) + '/' + digits.slice(2) : digits;
+        input.value = newValue;
+
+        if (digitsBeforeCursor === 0) {
+          input.setSelectionRange(0, 0);
+        } else {
+          let digitCount = 0;
+          let newCursorPos = newValue.length;
+          for (let i = 0; i < newValue.length; i++) {
+            if (/\d/.test(newValue[i])) {
+              digitCount++;
+              if (digitCount === digitsBeforeCursor) {
+                newCursorPos = i + 1;
+                break;
+              }
+            }
+          }
+          if (newValue[newCursorPos] === '/') newCursorPos++;
+          input.setSelectionRange(newCursorPos, newCursorPos);
+        }
+      }
+
+      function validarFormIdentificacao() {
+        const comarca = document.getElementById('comarca').value;
+        const nEdital = document.getElementById('nEdital').value;
+        const tipoCurso = document.getElementById('tipoCurso').value;
+        const nomeCurso = document.getElementById('nomeCurso').value.trim();
+
+        const anoAtual = new Date().getFullYear();
+        const partes = nEdital.split('/');
+        const numEdital = partes[0] ? parseInt(partes[0], 10) : 0;
+        const anoEdital = partes[1] ? parseInt(partes[1], 10) : 0;
+
+        let nEditalValido = true;
+        let nEditalErro = '';
+        if (!nEdital) {
+          nEditalValido = false;
+          nEditalErro = 'Informe o número e ano do edital.';
+        } else if (partes.length !== 2 || partes[0].length !== 2 || numEdital < 1 || numEdital > 99) {
+          nEditalValido = false;
+          nEditalErro = 'Número do edital inválido. Informe um valor entre 01 e 99.';
+        } else if (partes[1].length !== 4 || anoEdital < 1970 || anoEdital > anoAtual) {
+          nEditalValido = false;
+          nEditalErro = `Ano inválido. Informe um valor entre 1970 e ${anoAtual}.`;
+        }
+
+        return {
+          comarca: { valido: !!comarca, erro: 'Selecione uma comarca.' },
+          nEdital: { valido: nEditalValido, erro: nEditalErro },
+          tipoCurso: { valido: !!tipoCurso, erro: 'Selecione o tipo do curso.' },
+          nomeCurso: { valido: nomeCurso.length >= 3, erro: 'Informe o nome do curso (mínimo 3 caracteres).' },
+        };
+      }
+
+      function renderFeedbackCampo(fieldId, isValid, errorMsg) {
+        const field = document.getElementById(fieldId);
+        const iconEl = document.getElementById('icon-' + fieldId);
+        const errorEl = document.getElementById('error-' + fieldId);
+
+        field.classList.remove('border-gray-300', 'border-green-500', 'border-red-500');
+
+        if (isValid) {
+          field.classList.add('border-green-500');
+          iconEl.innerHTML = '<i data-lucide="check" class="w-4 h-4 text-green-500"></i>';
+          iconEl.classList.remove('hidden');
+          errorEl.classList.add('hidden');
+        } else {
+          field.classList.add('border-red-500');
+          iconEl.innerHTML = '<i data-lucide="x" class="w-4 h-4 text-red-500"></i>';
+          iconEl.classList.remove('hidden');
+          if (errorMsg) {
+            errorEl.textContent = errorMsg;
+          }
+          errorEl.classList.remove('hidden');
+        }
+
+        lucide.createIcons();
+      }
+
+      function revalidarCampo(fieldId) {
+        if (!formIdentificacaoSubmetido) return;
+        const result = validarFormIdentificacao();
+        renderFeedbackCampo(fieldId, result[fieldId].valido, result[fieldId].erro);
+      }
+
+      function setupFormIdentificacao() {
+        const select = document.getElementById('comarca');
+        COMARCAS_LIST.forEach(({ comarca }) => {
+          const opt = document.createElement('option');
+          opt.value = comarca;
+          opt.textContent = comarca;
+          select.appendChild(opt);
+        });
+
+        const nEditalEl = document.getElementById('nEdital');
+
+        nEditalEl.addEventListener('keydown', (e) => {
+          if (e.key === 'Backspace' && e.target.selectionStart === 3 && e.target.selectionEnd === 3) {
+            e.target.setSelectionRange(2, 2);
+            return;
+          }
+          if (!/^\d$/.test(e.key) && !['Backspace','Delete','ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Tab','Home','End'].includes(e.key) && !(e.ctrlKey || e.metaKey)) {
+            e.preventDefault();
+          }
+        });
+
+        nEditalEl.addEventListener('input', (e) => {
+          aplicarMascaraEdital(e);
+          revalidarCampo('nEdital');
+        });
+
+        document.getElementById('comarca').addEventListener('change', () => revalidarCampo('comarca'));
+        document.getElementById('tipoCurso').addEventListener('change', () => revalidarCampo('tipoCurso'));
+        document.getElementById('nomeCurso').addEventListener('input', () => revalidarCampo('nomeCurso'));
+      }
+
+      // ============================================
       // PROCESSAMENTO
       // ============================================
 
       function processar() {
+        const identificacaoResult = validarFormIdentificacao();
+        const identificacaoValida = Object.values(identificacaoResult).every(f => f.valido);
+        if (!identificacaoValida) {
+          formIdentificacaoSubmetido = true;
+          Object.entries(identificacaoResult).forEach(([fieldId, { valido, erro }]) => {
+            renderFeedbackCampo(fieldId, valido, erro);
+          });
+          showAlert('Preencha todos os campos obrigatórios corretamente antes de processar.', 'error');
+          return;
+        }
+
+        reportIdentification.comarca = document.getElementById('comarca').value;
+        reportIdentification.nEdital = document.getElementById('nEdital').value;
+        reportIdentification.tipoCurso = document.getElementById('tipoCurso').value;
+        reportIdentification.nomeCurso = document.getElementById('nomeCurso').value.trim();
+
         if (todosOsCandidatos.length === 0) {
           showAlert(CONFIG.MENSAGENS.ERRO.NENHUM_CANDIDATO_PROCESSAR, 'error');
           return;
