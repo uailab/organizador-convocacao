@@ -237,14 +237,16 @@
           margin-right: 20mm;
         }
         
-        header,
         footer,
         .tab-button,
         nav,
         button,
+        #btnAdmin,
         #toastContainer,
         #loadingOverlay,
         #statsContainer,
+        #resultCardHeader,
+        .screen-only,
         .border-b.border-gray-200.flex {
           display: none !important;
         }
@@ -281,33 +283,48 @@
           margin-bottom: 25px;
         }
 
-        .print-header-content {
+        .print-report-title-block {
+          margin-bottom: 12px;
           text-align: center;
-          padding-bottom: 20px;
-          border-bottom: 2px solid #e5e7eb;
-          margin-bottom: 25px;
         }
 
-        .print-title {
-          font-size: 28pt;
+        .print-report-title {
+          font-size: 18pt;
           font-weight: 700;
           color: #111827;
-          margin: 0 0 8px 0;
-          letter-spacing: -0.5px;
+          margin: 0 0 4px 0;
         }
 
-        .print-subtitle {
-          font-size: 12pt;
-          color: #6b7280;
-          margin: 0 0 15px 0;
-        }
-
-        .print-info {
-          display: flex;
-          justify-content: center;
-          gap: 20px;
+        .print-report-subtitle {
           font-size: 10pt;
-          color: #9ca3af;
+          color: #6b7280;
+          margin: 0;
+        }
+
+        .print-info-box {
+          border: 1.5px solid black;
+          border-radius: 6px;
+          padding: 10px 14px;
+          margin-bottom: 25px;
+          font-size: 10pt;
+        }
+
+        .print-info-row {
+          display: flex;
+          justify-content: space-between;
+          gap: 12px;
+          padding: 3px 0;
+        }
+
+        .print-info-col {
+          display: flex;
+          gap: 4px;
+          flex: 1;
+          word-break: break-all;
+        }
+
+        .print-info-col strong {
+          white-space: nowrap;
         }
 
         .print-legend {
@@ -431,7 +448,8 @@
           margin-top: 2px;
         }
 
-        .overflow-x-auto {
+        .overflow-x-auto,
+        [class*="max-h-"] {
           overflow: visible !important;
           max-height: none !important;
         }
@@ -737,10 +755,10 @@
               </g>
             </svg>
             <!-- Divisor vertical -->
-            <div class="w-0.5 h-8 md:h-10 bg-black flex-shrink-0" aria-hidden="true"></div>
+            <div class="w-0.5 h-8 md:h-10 bg-gray-300 flex-shrink-0" aria-hidden="true"></div>
             <div>
               <h1 class="text-xl md:text-2xl font-semibold text-gray-900">
-                Organizador de Convocação
+                <span class="screen-only">Organizador de Convocação</span><span class="print-only">Relatório final de convocação</span>
               </h1>
               <p class="text-sm text-gray-500 hidden sm:block">Ordem de convocação conforme cotas - Estagiários</p>
             </div>
@@ -1248,6 +1266,7 @@
               class="bg-white rounded-lg border border-main overflow-hidden"
             >
               <div
+                id="resultCardHeader"
                 class="px-6 py-4 border-b border-main flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3"
               >
                 <div class="flex items-center gap-2">
@@ -1275,12 +1294,22 @@
               </div>
               <!-- Cabeçalho de Impressão (oculto na tela) -->
               <div id="printHeader" class="print-only">
-                <div class="print-header-content">
-                  <h1 class="print-title">Organizador de Convocação</h1>
-                  <p class="print-subtitle">Distribuição de vagas por cotas</p>
-                  <div class="print-info">
-                    <span id="printFileName"></span>
-                    <span id="printDate"></span>
+                <div class="print-report-title-block">
+                  <h1 class="print-report-title">Relatório final de convocação</h1>
+                  <p class="print-report-subtitle">Ordem de convocação conforme cotas - Estagiários</p>
+                </div>
+                <div class="print-info-box">
+                  <div class="print-info-row">
+                    <div class="print-info-col"><strong>Comarca:</strong> <span id="printComarca"></span></div>
+                    <div class="print-info-col"><strong>Nº e Ano do edital:</strong> <span id="printNEdital"></span></div>
+                  </div>
+                  <div class="print-info-row">
+                    <div class="print-info-col"><strong>Tipo de Curso:</strong> <span id="printTipoCurso"></span></div>
+                    <div class="print-info-col"><strong>Nome do curso:</strong> <span id="printNomeCurso"></span></div>
+                  </div>
+                  <div class="print-info-row">
+                    <div class="print-info-col"><strong>Arquivo base:</strong> <span id="printArquivoBase"></span></div>
+                    <div class="print-info-col"><strong>Data de criação:</strong> <span id="printDataCriacao"></span></div>
                   </div>
                 </div>
 
@@ -5429,6 +5458,8 @@
         nEdital: '',
         tipoCurso: '',
         nomeCurso: '',
+        arquivoBase: '',
+        dataCriacao: '',
       };
 
       let formIdentificacaoSubmetido = false;
@@ -5532,7 +5563,7 @@
         COMARCAS_LIST.forEach(({ comarca }) => {
           const opt = document.createElement('option');
           opt.value = comarca;
-          opt.textContent = comarca;
+          opt.textContent = toTitleCaseComarca(comarca);
           select.appendChild(opt);
         });
 
@@ -5578,6 +5609,14 @@
         reportIdentification.nEdital = document.getElementById('nEdital').value;
         reportIdentification.tipoCurso = document.getElementById('tipoCurso').value;
         reportIdentification.nomeCurso = document.getElementById('nomeCurso').value.trim();
+        reportIdentification.arquivoBase = nomeArquivoOriginal;
+        const _agora = new Date();
+        const _dd = String(_agora.getDate()).padStart(2, '0');
+        const _mm = String(_agora.getMonth() + 1).padStart(2, '0');
+        const _yyyy = _agora.getFullYear();
+        const _hh = String(_agora.getHours()).padStart(2, '0');
+        const _min = String(_agora.getMinutes()).padStart(2, '0');
+        reportIdentification.dataCriacao = `${_dd}/${_mm}/${_yyyy} - ${_hh}:${_min}`;
 
         if (todosOsCandidatos.length === 0) {
           showAlert(CONFIG.MENSAGENS.ERRO.NENHUM_CANDIDATO_PROCESSAR, 'error');
@@ -5791,16 +5830,23 @@
         popularInformacoesPrint(estatisticas);
       }
 
+      function toTitleCaseComarca(str) {
+        const minusculas = new Set(['de', 'da', 'do', 'das', 'dos', 'e', 'em', 'no', 'na', 'nos', 'nas']);
+        const cap = (w) => w.charAt(0).toUpperCase() + w.slice(1);
+        return str.toLowerCase().split(' ').map((word, idx) => {
+          if (idx > 0 && minusculas.has(word)) return word;
+          if (word.includes('-')) return word.split('-').map(cap).join('-');
+          return cap(word);
+        }).join(' ');
+      }
+
       function popularInformacoesPrint(estatisticas) {
-        document.getElementById('printFileName').textContent = nomeArquivoOriginal;
-        
-        const hoje = new Date();
-        const dataFormatada = hoje.toLocaleDateString('pt-BR', {
-          day: '2-digit',
-          month: '2-digit',
-          year: 'numeric'
-        });
-        document.getElementById('printDate').textContent = `Data: ${dataFormatada}`;
+        document.getElementById('printComarca').textContent = toTitleCaseComarca(reportIdentification.comarca);
+        document.getElementById('printNEdital').textContent = reportIdentification.nEdital;
+        document.getElementById('printTipoCurso').textContent = reportIdentification.tipoCurso;
+        document.getElementById('printNomeCurso').textContent = reportIdentification.nomeCurso;
+        document.getElementById('printArquivoBase').textContent = reportIdentification.arquivoBase;
+        document.getElementById('printDataCriacao').textContent = reportIdentification.dataCriacao;
         
         let statsHTML = '';
         
@@ -5832,6 +5878,21 @@
       function imprimirResultado() {
         window.print();
       }
+
+      document.addEventListener('keydown', function(e) {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'p') {
+          e.preventDefault();
+          imprimirResultado();
+        }
+      });
+
+      window.addEventListener('beforeprint', function() {
+        document.body.style.overflow = 'visible';
+      });
+
+      window.addEventListener('afterprint', function() {
+        document.body.style.overflow = '';
+      });
 
       function executarReset() {
         todosOsCandidatos = [];
