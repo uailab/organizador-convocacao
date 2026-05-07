@@ -1024,10 +1024,10 @@
           <div id="content-config" class="tab-content hidden">
 
             <!-- Card: Identificação do relatório final -->
-            <div class="border border-main rounded-lg mb-6 overflow-hidden">
+            <div class="border border-main rounded-lg mb-6">
 
               <!-- Card Header -->
-              <div class="bg-gray-100 px-5 py-4 border-b border-main flex items-center gap-2">
+              <div class="bg-gray-100 px-5 py-4 border-b border-main flex items-center gap-2 rounded-t-lg">
                 <i data-lucide="file-search-corner" class="w-5 h-5 text-gray-700"></i>
                 <h3 class="font-semibold text-base text-gray-900">Identificação do relatório final</h3>
               </div>
@@ -1041,15 +1041,22 @@
 
                   <!-- Campo: Nome da Comarca -->
                   <div class="flex flex-col gap-1">
-                    <label for="comarca" class="text-sm font-bold text-gray-900">
+                    <label for="comarca-input" class="text-sm font-bold text-gray-900">
                       Nome da Comarca <span class="text-red-500">*</span>
                     </label>
                     <div class="flex items-center gap-2">
-                      <div class="relative w-full">
-                        <select id="comarca" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm italic appearance-none bg-white pr-8">
-                          <option value="">Selecione uma comarca</option>
-                        </select>
-                        <i data-lucide="chevron-down" class="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none"></i>
+                      <div class="relative w-full" id="comarca-wrapper">
+                        <input type="text" id="comarca-input"
+                          role="combobox" aria-autocomplete="list" aria-expanded="false"
+                          aria-controls="comarca-dropdown" aria-activedescendant=""
+                          placeholder="Digite para buscar..."
+                          class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm italic pr-8" />
+                        <input type="hidden" id="comarca" />
+                        <i data-lucide="chevron-down"
+                          class="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none"></i>
+                        <div id="comarca-dropdown" role="listbox" aria-label="Comarcas" tabindex="-1"
+                          class="hidden absolute z-50 w-full bg-white border border-gray-200 rounded-lg shadow-lg mt-1 max-h-48 overflow-y-auto">
+                        </div>
                       </div>
                       <span id="icon-comarca" class="hidden flex-shrink-0"></span>
                     </div>
@@ -5463,6 +5470,7 @@
       };
 
       let formIdentificacaoSubmetido = false;
+      let comarcaSelecionada = '';
 
       function aplicarMascaraEdital(e) {
         const input = e.target;
@@ -5496,7 +5504,7 @@
       }
 
       function validarFormIdentificacao() {
-        const comarca = document.getElementById('comarca').value;
+        const comarca = comarcaSelecionada;
         const nEdital = document.getElementById('nEdital').value;
         const tipoCurso = document.getElementById('tipoCurso').value;
         const nomeCurso = document.getElementById('nomeCurso').value.trim();
@@ -5528,7 +5536,7 @@
       }
 
       function renderFeedbackCampo(fieldId, isValid, errorMsg) {
-        const field = document.getElementById(fieldId);
+        const field = document.getElementById(fieldId === 'comarca' ? 'comarca-input' : fieldId);
         const iconEl = document.getElementById('icon-' + fieldId);
         const errorEl = document.getElementById('error-' + fieldId);
 
@@ -5558,13 +5566,126 @@
         renderFeedbackCampo(fieldId, result[fieldId].valido, result[fieldId].erro);
       }
 
+      function filtrarComarcas(query) {
+        const norm = (s) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase();
+        const q = norm(query.trim());
+        if (!q) return COMARCAS_LIST;
+        return COMARCAS_LIST.filter(({ comarca }) => norm(comarca).includes(q));
+      }
+
+      function renderDropdownComarca(items, activeIndex) {
+        const dropdown = document.getElementById('comarca-dropdown');
+        const input = document.getElementById('comarca-input');
+
+        if (items.length === 0) {
+          dropdown.innerHTML = '<div class="py-2 px-3 text-sm text-gray-400 italic">Nenhuma comarca encontrada.</div>';
+          input.setAttribute('aria-activedescendant', '');
+          return;
+        }
+
+        dropdown.innerHTML = items.map(({ comarca }, i) => {
+          const highlight = i === activeIndex ? ' bg-blue-100' : '';
+          return `<div role="option" id="comarca-opt-${i}" aria-selected="${i === activeIndex}" tabindex="-1" class="py-2 px-3 text-sm cursor-pointer hover:bg-blue-50${highlight}" data-value="${comarca}">${toTitleCaseComarca(comarca)}</div>`;
+        }).join('');
+
+        input.setAttribute('aria-activedescendant', activeIndex >= 0 ? `comarca-opt-${activeIndex}` : '');
+
+        if (activeIndex >= 0) {
+          const activeEl = dropdown.querySelector(`#comarca-opt-${activeIndex}`);
+          if (activeEl) activeEl.scrollIntoView({ block: 'nearest' });
+        }
+      }
+
+      function selecionarComarca(comarcaValue, displayText) {
+        comarcaSelecionada = comarcaValue;
+        document.getElementById('comarca-input').value = displayText;
+        document.getElementById('comarca').value = comarcaValue;
+        document.getElementById('comarca-dropdown').classList.add('hidden');
+        document.getElementById('comarca-input').setAttribute('aria-expanded', 'false');
+        document.getElementById('comarca-input').setAttribute('aria-activedescendant', '');
+        if (formIdentificacaoSubmetido) revalidarCampo('comarca');
+      }
+
       function setupFormIdentificacao() {
-        const select = document.getElementById('comarca');
-        COMARCAS_LIST.forEach(({ comarca }) => {
-          const opt = document.createElement('option');
-          opt.value = comarca;
-          opt.textContent = toTitleCaseComarca(comarca);
-          select.appendChild(opt);
+        const comarcaInput = document.getElementById('comarca-input');
+        const comarcaDropdown = document.getElementById('comarca-dropdown');
+        const comarcaWrapper = document.getElementById('comarca-wrapper');
+        let filteredItems = [];
+        let activeIndex = -1;
+
+        function openDropdown() {
+          filteredItems = filtrarComarcas(comarcaInput.value);
+          renderDropdownComarca(filteredItems, activeIndex);
+          comarcaDropdown.classList.remove('hidden');
+          comarcaInput.setAttribute('aria-expanded', 'true');
+        }
+
+        function closeDropdown() {
+          comarcaDropdown.classList.add('hidden');
+          comarcaInput.setAttribute('aria-expanded', 'false');
+          comarcaInput.setAttribute('aria-activedescendant', '');
+          activeIndex = -1;
+        }
+
+        comarcaInput.addEventListener('focus', () => {
+          openDropdown();
+        });
+
+        comarcaInput.addEventListener('input', () => {
+          comarcaSelecionada = '';
+          document.getElementById('comarca').value = '';
+          activeIndex = -1;
+          filteredItems = filtrarComarcas(comarcaInput.value);
+          renderDropdownComarca(filteredItems, activeIndex);
+          comarcaDropdown.classList.remove('hidden');
+          comarcaInput.setAttribute('aria-expanded', 'true');
+          if (formIdentificacaoSubmetido) revalidarCampo('comarca');
+        });
+
+        comarcaInput.addEventListener('keydown', (e) => {
+          if (comarcaDropdown.classList.contains('hidden')) return;
+
+          if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            if (filteredItems.length === 0) return;
+            activeIndex = (activeIndex + 1) % filteredItems.length;
+            renderDropdownComarca(filteredItems, activeIndex);
+          } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            if (filteredItems.length === 0) return;
+            activeIndex = (activeIndex - 1 + filteredItems.length) % filteredItems.length;
+            renderDropdownComarca(filteredItems, activeIndex);
+          } else if (e.key === 'Enter') {
+            e.preventDefault();
+            if (activeIndex >= 0 && filteredItems[activeIndex]) {
+              const { comarca } = filteredItems[activeIndex];
+              selecionarComarca(comarca, toTitleCaseComarca(comarca));
+            }
+          } else if (e.key === 'Escape') {
+            closeDropdown();
+          }
+        });
+
+        comarcaDropdown.addEventListener('mousedown', (e) => {
+          const option = e.target.closest('[role="option"]');
+          if (!option) return;
+          e.preventDefault();
+          const comarcaValue = option.getAttribute('data-value');
+          selecionarComarca(comarcaValue, toTitleCaseComarca(comarcaValue));
+        });
+
+        comarcaWrapper.addEventListener('focusout', (e) => {
+          if (comarcaWrapper.contains(e.relatedTarget)) return;
+          closeDropdown();
+          if (!comarcaSelecionada) {
+            comarcaInput.value = '';
+          }
+        });
+
+        document.addEventListener('mousedown', (e) => {
+          if (!comarcaWrapper.contains(e.target)) {
+            closeDropdown();
+          }
         });
 
         const nEditalEl = document.getElementById('nEdital');
@@ -5584,7 +5705,6 @@
           revalidarCampo('nEdital');
         });
 
-        document.getElementById('comarca').addEventListener('change', () => revalidarCampo('comarca'));
         document.getElementById('tipoCurso').addEventListener('change', () => revalidarCampo('tipoCurso'));
         document.getElementById('nomeCurso').addEventListener('input', () => revalidarCampo('nomeCurso'));
       }
