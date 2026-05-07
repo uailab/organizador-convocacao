@@ -1034,7 +1034,7 @@
 
               <!-- Card Body -->
               <div class="p-4">
-                <p class="mb-6 text-sm text-gray-600 font-semibold">Preencha as informações abaixo para identificar o relatório final gerado ao processar a convocação.</p>
+                <p class="mb-6 text-sm text-gray-600 font-semibold">Preencha as informações abaixo para identificar o relatório final de convocação.</p>
 
                 <!-- Campos de identificação -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -1066,7 +1066,7 @@
                   <!-- Campo: Nº e Ano do Edital -->
                   <div class="flex flex-col gap-1">
                     <label for="nEdital" class="text-sm font-bold text-gray-900">
-                      Nº e Ano do Edital <span class="text-red-500">*</span>
+                      Nº e Ano do edital <span class="text-red-500">*</span>
                     </label>
                     <div class="flex items-center gap-2">
                       <input type="text" id="nEdital" placeholder="Ex: 01/2025" maxlength="7"
@@ -1079,7 +1079,7 @@
                   <!-- Campo: Tipo do Curso -->
                   <div class="flex flex-col gap-1">
                     <label for="tipoCurso" class="text-sm font-bold text-gray-900">
-                      Tipo do Curso <span class="text-red-500">*</span>
+                      Tipo do curso <span class="text-red-500">*</span>
                     </label>
                     <div class="flex items-center gap-2">
                       <div class="relative w-full">
@@ -1098,7 +1098,7 @@
                   <!-- Campo: Nome do Curso -->
                   <div class="flex flex-col gap-1">
                     <label for="nomeCurso" class="text-sm font-bold text-gray-900">
-                      Nome do Curso <span class="text-red-500">*</span>
+                      Nome do curso <span class="text-red-500">*</span>
                     </label>
                     <div class="flex items-center gap-2">
                       <input type="text" id="nomeCurso" placeholder="Ex: Direito"
@@ -1137,10 +1137,10 @@
                 <!-- Cabeçalho da Lista -->
                 <div class="bg-gray-50 border border-main rounded-t-lg px-5 py-4 flex items-center justify-between">
                   <div class="flex items-center gap-2">
-                    <h3 class="font-semibold text-base text-gray-900">Blocos de Distribuição</h3>
+                    <h3 class="font-semibold text-base text-gray-900">Blocos de distribuição</h3>
                   </div>
                 </div>
-                
+
                 <!-- Lista Scrollável -->
                 <div class="flex-1 overflow-y-auto bg-white border-x border-b border-main rounded-b-lg max-h-[400px] lg:max-h-[600px]">
                   <div id="blocosListaMaster" class="p-3 space-y-2">
@@ -1155,7 +1155,7 @@
                     class="w-full px-4 py-2.5 bg-white text-gray-700 border rounded-lg text-sm font-medium hover:bg-gray-50 flex items-center justify-center gap-2 transition-colors" style="border-color: #000000;"
                   >
                     <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
-                    Restaurar Padrão
+                    Restaurar padrão
                   </button>
                 </div>
                 
@@ -1224,7 +1224,7 @@
                         ></div>
 
                         <!-- Análise do Padrão -->
-                        <label class="block text-sm font-semibold text-gray-900 mb-2">Análise do Padrão</label>
+                        <label class="block text-sm font-semibold text-gray-900 mb-2">Análise do padrão</label>
                         <div id="modalPatternAnalysis" class="bg-gray-50 border border-gray-200 rounded-lg p-3">
                           <div id="modalPatternStats" class="grid grid-cols-1 md:grid-cols-3 gap-3"></div>
                         </div>
@@ -1279,7 +1279,7 @@
                 <div class="flex items-center gap-2">
                   <i data-lucide="table" class="w-5 h-5 text-gray-700"></i>
                   <h3 class="text-base font-semibold text-gray-900">
-                    Resultado da Distribuição
+                    Resultado da distribuição
                   </h3>
                 </div>
                 <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
@@ -1311,7 +1311,7 @@
                     <div class="print-info-col"><strong>Nº e Ano do edital:</strong> <span id="printNEdital"></span></div>
                   </div>
                   <div class="print-info-row">
-                    <div class="print-info-col"><strong>Tipo de Curso:</strong> <span id="printTipoCurso"></span></div>
+                    <div class="print-info-col"><strong>Tipo de curso:</strong> <span id="printTipoCurso"></span></div>
                     <div class="print-info-col"><strong>Nome do curso:</strong> <span id="printNomeCurso"></span></div>
                   </div>
                   <div class="print-info-row">
@@ -1322,7 +1322,7 @@
 
                 <!-- Legenda -->
                 <div class="print-legend">
-                  <h2 class="print-section-title">Tipos de Vaga</h2>
+                  <h2 class="print-section-title">Tipos de vaga</h2>
                   <div class="print-legend-grid">
                     <div class="print-legend-card print-legend-ac">
                       <div class="print-legend-badge">AC</div>
@@ -1341,7 +1341,7 @@
 
                 <!-- Estatísticas -->
                 <div class="print-stats">
-                  <h2 class="print-section-title">Resumo da Distribuição</h2>
+                  <h2 class="print-section-title">Resumo da distribuição</h2>
                   <div class="print-stats-grid" id="printStatsGrid"></div>
                 </div>
               </div>
@@ -4870,11 +4870,11 @@
 
       function resetBloco(blocoId) {
         showConfirmation(
-          "Restaurar Padrão do Bloco",
+          "Restaurar padrão do bloco",
           "Deseja restaurar as configurações padrão deste bloco?\n\nIsso irá resetar:\n• Percentuais de distribuição\n• Padrão de vagas\n• Limite de posições",
           {
             type: "warning",
-            confirmText: "Sim, Restaurar",
+            confirmText: "Sim, restaurar",
             cancelText: "Cancelar",
           },
         ).then((confirmed) => {
@@ -5147,7 +5147,7 @@
         const numeroBloco = blocoIndex + 1;
 
         if (blocoIndex === 0) {
-          showAlert('O primeiro bloco não pode ser removido. Use "Restaurar Padrão" para resetar as configurações.', 'info');
+          showAlert('O primeiro bloco não pode ser removido. Use "Restaurar padrão" para resetar as configurações.', 'info');
           return;
         }
 
@@ -5223,9 +5223,9 @@
 
       function resetBlocos() {
         showConfirmation(
-          'Restaurar Padrão',
+          'Restaurar padrão',
           'Deseja restaurar a configuração padrão de blocos definida pelo administrador?',
-          { type: 'warning', confirmText: 'Sim, Restaurar', cancelText: 'Cancelar' }
+          { type: 'warning', confirmText: 'Sim, restaurar', cancelText: 'Cancelar' }
         ).then(confirmed => {
           if (confirmed) {
             blocosDistribuicao = JSON.parse(JSON.stringify(CONFIG_PADRAO_INICIAL.blocos));
@@ -5521,10 +5521,10 @@
           nEditalErro = 'Informe o número e ano do edital.';
         } else if (partes.length !== 2 || partes[0].length !== 2 || numEdital < 1 || numEdital > 99) {
           nEditalValido = false;
-          nEditalErro = 'Número do edital inválido. Informe um valor entre 01 e 99.';
+          nEditalErro = 'Informe um nº de edital válido (entre 01 e 99).';
         } else if (partes[1].length !== 4 || anoEdital < 1970 || anoEdital > anoAtual) {
           nEditalValido = false;
-          nEditalErro = `Ano inválido. Informe um valor entre 1970 e ${anoAtual}.`;
+          nEditalErro = `Informe um ano de edital válido (entre 1970 e ${anoAtual}).`;
         }
 
         return {
@@ -5972,7 +5972,7 @@
         
         statsHTML += `
           <div class="print-stat-card">
-            <span class="print-stat-label">Total de Candidatos</span>
+            <span class="print-stat-label">Total de candidatos</span>
             <span class="print-stat-value">${estatisticas.total}</span>
           </div>
         `;
