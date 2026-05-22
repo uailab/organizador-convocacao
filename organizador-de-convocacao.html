@@ -1411,8 +1411,14 @@
                       <span class="text-base font-semibold text-gray-900">Prepare seu arquivo</span>
                     </div>
                     <p class="text-sm text-gray-600 leading-relaxed">
-                      Na aba <strong>"Upload"</strong>, baixe o modelo de arquivo CSV e substitua os dados de exemplo pelos seus, mantendo o arquivo exatamente no mesmo formato, sem alterar os nomes das colunas nem os cabeçalhos.
+                      Na aba <strong>"Upload"</strong>, baixe o modelo de arquivo CSV e troque os dados-exemplo pelos seus.
                     </p>
+                    
+                    <div class="flex items-start gap-3 bg-gray-100 text-sm text-gray-600 rounded-lg mt-3 px-6 py-3">
+                      <i data-lucide="triangle-alert" class="w-5 h-5 flex-shrink-0 mt-0.5" aria-hidden="true"></i>                      
+                      Mantenha o arquivo no mesmo formato. <strong>Não troque os nomes das colunas e cabeçalhos!</strong>                      
+                    </div>
+
                     <div class="flex flex-col items-center mt-6">
                       <video autoplay loop muted playsinline class="border border-gray-400" style="max-width: 700px; width: 100%; border-radius: 8px; box-shadow: 6px 6px 3px 0px rgba(0, 0, 0, 0.2);">
                         <source src="https://github.com/uailab/organizador-convocacao/raw/refs/heads/master/assets/Download.webm" type="video/webm">
@@ -1435,7 +1441,8 @@
                       <span class="text-base font-semibold text-gray-900">Faça o upload</span>
                     </div>
                     <p class="text-sm text-gray-600 leading-relaxed">
-                      Na aba <strong>"Upload"</strong>, arraste e solte o arquivo CSV na área pontilhada ou clique nela para selecioná-lo do seu computador. O sistema vai verificar o arquivo e informar se ele está correto. Se houver algum problema, siga a instrução anterior <strong>"1. Prepare seu arquivo"</strong>.
+                      Na aba <strong>“Upload”</strong>, arraste o arquivo CSV e solte na área pontilhada. Você também pode clicar na área para escolher o arquivo no computador. 
+                      A ferramenta vai verificar o arquivo e informar se ele está correto. Se houver algum problema, siga a instrução <strong>“01. Prepare seu arquivo”</strong>.
                     </p>
                     <div class="flex flex-col items-center mt-6">
                       <video autoplay loop muted playsinline class="border border-gray-400" style="max-width: 700px; width: 100%; border-radius: 8px; box-shadow: 6px 6px 3px 0px rgba(0, 0, 0, 0.2);">
@@ -1444,37 +1451,48 @@
                       <p class="text-sm text-gray-500 text-center mt-2">Demonstração de como fazer o upload do arquivo CSV</p>
                     </div>
                     <p class="text-sm text-gray-600 leading-relaxed mt-6">
-                      Se o arquivo estiver correto, uma mensagem em verde aparecerá no canto superior direito da tela e o sistema seguirá automaticamente para a aba <strong>"Configuração"</strong>. Se quiser voltar, clique no botão <strong>"Voltar"</strong> no canto inferior esquerdo ou na aba <strong>"Upload"</strong>.
+                      Se o arquivo estiver <strong>correto</strong>, a ferramenta mostra uma mensagem verde na parte de cima da tela, à direita. Depois disso, o sistema abre a aba <strong>“Configuração”</strong>. 
                     </p>
                     <div class="flex flex-col items-center mt-4">
                       <img src="https://raw.githubusercontent.com/uailab/organizador-convocacao/refs/heads/master/assets/sucesso.jpeg" alt="Aba de configuração exibindo mensagem de sucesso após o upload" style="max-width: 700px; width: 100%; border-radius: 8px;">
                       <p class="text-sm text-gray-500 text-center">Aba de configuração exibindo mensagem de sucesso após o upload</p>
                     </div>
                     <p class="text-sm text-gray-600 leading-relaxed mt-4">
-                      Se o arquivo <strong>não</strong> estiver em conformidade, uma mensagem em vermelho aparecerá no canto superior direito da tela informando o tipo de erro.
+                      Se o arquivo <strong>não</strong> estiver correto, o sistema mostra uma mensagem vermelha na parte de cima da tela, à direita. Ela indica o tipo de erro.
                     </p>
                     <div class="flex gap-3 mt-6">
                       <div class="flex flex-col items-center flex-1">
-                        <img src="https://raw.githubusercontent.com/uailab/organizador-convocacao/refs/heads/master/assets/erro_1.jpeg" alt="Exemplo de erro: colunas obrigatórias não encontradas no arquivo" style="max-width: 700px; width: 100%; border-radius: 8px;">
+                        <img src="https://raw.githubusercontent.com/uailab/organizador-convocacao/refs/heads/master/assets/erro-1.jpeg" alt="Exemplo de erro: colunas obrigatórias não encontradas no arquivo" style="max-width: 700px; width: 100%; border-radius: 8px;">
                         <p class="text-sm text-gray-500 text-center">Exemplo de erro: colunas obrigatórias não encontradas no arquivo</p>
                       </div>
                       <div class="flex flex-col items-center flex-1">
-                        <img src="https://raw.githubusercontent.com/uailab/organizador-convocacao/refs/heads/master/assets/erro_2.jpeg" alt="Exemplo de erro: arquivo vazio ou sem dados" style="max-width: 700px; width: 100%; border-radius: 8px;">
+                        <img src="https://raw.githubusercontent.com/uailab/organizador-convocacao/refs/heads/master/assets/erro-2.jpeg" alt="Exemplo de erro: arquivo vazio ou sem dados" style="max-width: 700px; width: 100%; border-radius: 8px;">
                         <p class="text-sm text-gray-500 text-center">Exemplo de erro: arquivo vazio ou sem dados</p>
                       </div>
                     </div>
                     <p class="text-sm text-gray-600 leading-relaxed mt-6">
-                      Para enviar outro arquivo ou voltar à aba <strong>"Upload"</strong>, clique no botão <strong>"Voltar"</strong> no canto inferior esquerdo ou na própria aba <strong>"Upload"</strong>.
-                      <br>
-                      Nessa aba, você pode clicar em <strong>"Limpar"</strong> para recomeçar sem nenhum arquivo ou enviar um novo arquivo para substituir o atual, sem precisar limpar antes. O sistema pedirá confirmação em ambos os casos.
+                      Para enviar outro arquivo, volte à aba <strong>“Upload”</strong>. Faça isso clicando no botão <strong>“Voltar”</strong> no canto inferior esquerdo ou na própria aba <strong>“Upload”</strong>.
                     </p>
+
+                    <div class="flex items-start gap-3 bg-gray-100 text-sm text-gray-600 rounded-lg mt-6 px-6 py-3">
+                      <i data-lucide="info" class="w-5 h-5 flex-shrink-0 mt-0.5" aria-hidden="true"></i>
+                      <div>
+                        Nessa aba, você pode:
+                        <ul class="list-disc pl-5 mt-1">
+                          <li>clicar em <strong>“Limpar”</strong> para começar sem nenhum arquivo; ou</li>
+                          <li>enviar um novo arquivo para substituir o atual, sem precisar limpar antes.</li>
+                        </ul>
+                        <p class="mt-1">A ferramenta pede para confirmar nos dois casos.</p>
+                      </div>
+                    </div>
+
                     <div class="flex gap-3 mt-6">
                       <div class="flex flex-col items-center flex-1">
-                        <img src="https://raw.githubusercontent.com/uailab/organizador-convocacao/refs/heads/master/assets/confirmacao_1.jpeg" alt="Exemplo de confirmação: substituição de dados" style="max-width: 700px; width: 100%; border-radius: 8px;">
+                        <img src="https://raw.githubusercontent.com/uailab/organizador-convocacao/refs/heads/master/assets/confirmacao-1.jpeg" alt="Exemplo de confirmação: substituição de dados" style="max-width: 700px; width: 100%; border-radius: 8px;">
                         <p class="text-sm text-gray-500 text-center">Exemplo de confirmação: substituição de dados</p>
                       </div>
                       <div class="flex flex-col items-center flex-1">
-                        <img src="https://raw.githubusercontent.com/uailab/organizador-convocacao/refs/heads/master/assets/confirmacao_2.jpeg" alt="Exemplo de confirmação: limpeza de dados" style="max-width: 700px; width: 100%; border-radius: 8px;">
+                        <img src="https://raw.githubusercontent.com/uailab/organizador-convocacao/refs/heads/master/assets/confirmacao-2.jpeg" alt="Exemplo de confirmação: limpeza de dados" style="max-width: 700px; width: 100%; border-radius: 8px;">
                         <p class="text-sm text-gray-500 text-center">Exemplo de confirmação: limpeza de dados</p>
                       </div>
                     </div>
@@ -1482,27 +1500,65 @@
 
                   <!-- Card 3 -->
                   <div class="w-full border border-main rounded-lg p-6 bg-white">
+                    
                     <div class="flex items-center gap-3 mb-3">
                       <div class="w-10 h-10 bg-purple-50 rounded-full flex items-center justify-center flex-shrink-0">
                         <span class="text-purple-600 font-bold text-sm leading-none">03</span>
                       </div>
                       <span class="text-base font-semibold text-gray-900">Configure as cotas</span>
                     </div>
+                    
                     <p class="text-sm text-gray-600 leading-relaxed">
-                      Na aba <strong>"Configuração"</strong>, verifique se o padrão de distribuição de chamadas está de acordo com o edital, quando houver regra específica. Se precisar ajustar, clique e arraste os blocos de vagas para reorganizar a ordem.
-                      <br>
-                      O percentual de cotas é fixo: a cada 10 convocações a ferramenta chama, quando houver candidatos disponíveis, <strong>1 PcD (10%), 3 candidatos negros(as) (30%) e 6 da ampla concorrência (60%)</strong>.
-                      <br>
-                      A ordem de distribuição para o restante da lista seguirá o padrão definido no segundo bloco.
-                      <br>
-                      Para voltar às configurações originais, clique em <strong>"Restaurar padrão"</strong>. O sistema pedirá confirmação.
+                      Na aba <strong>"Configuração"</strong>, na seção <strong>"Identificação do relatório final"</strong>, preencha os campos <strong>"Nome da Comarca"</strong>, <strong>"Nº e Ano do edital"</strong>, <strong>"Tipo de curso"</strong> e <strong>"Nome do curso"</strong>. Essas informações são obrigatórias e serão exibidas no cabeçalho do relatório final de convocação para facilitar sua identificação.
+                    </p>
+                    <div class="flex flex-col items-center mt-4">
+                      <img src="https://raw.githubusercontent.com/uailab/organizador-convocacao/refs/heads/master/assets/3.1-identificacao-do-relatorio.jpg" alt="Aba de configuração exibindo mensagem de sucesso após o upload" style="max-width: 700px; width: 100%; border-radius: 8px;">
+                      <p class="text-sm text-gray-500 text-center">Aba de configuração exibindo mensagem de sucesso após o upload</p>
+                    </div>
+
+                    <p class="text-sm text-gray-600 leading-relaxed mt-6">
+                      Após preencher os campos, clique em <strong>"Processar"</strong> para avançar. Se houver algum campo em branco ou preenchido incorretamente, o sistema destacará o campo em vermelho e exibirá uma mensagem de erro.
                     </p>
                     <div class="flex flex-col items-center mt-6">
                       <video autoplay loop muted playsinline class="border border-gray-400" style="max-width: 700px; width: 100%; border-radius: 8px; box-shadow: 6px 6px 3px 0px rgba(0, 0, 0, 0.2);">
-                        <source src="https://github.com/uailab/organizador-convocacao/raw/refs/heads/master/assets/Reoodena%C3%A7%C3%A3o%20de%20cotas.webm" type="video/webm">
+                        <source src="https://github.com/uailab/organizador-convocacao/raw/refs/heads/master/assets/3.2-header-error.webm" type="video/webm">
+                      </video>
+                      <p class="text-sm text-gray-500 text-center mt-2">Demonstração de processamento com campos preenchido incorretamente</p>
+                    </div>
+
+                    <div class="flex flex-col items-center mt-6">
+                      <video autoplay loop muted playsinline class="border border-gray-400" style="max-width: 700px; width: 100%; border-radius: 8px; box-shadow: 6px 6px 3px 0px rgba(0, 0, 0, 0.2);">
+                        <source src="https://github.com/uailab/organizador-convocacao/raw/refs/heads/master/assets/3.3-header-corrigido.webm" type="video/webm">
+                      </video>
+                      <p class="text-sm text-gray-500 text-center mt-2">Demonstração de correção dos campos com erro</p>
+                    </div>
+
+                    <p class="text-sm text-gray-600 leading-relaxed mt-6">
+                      Na seção de baixo,  <strong>“Configuração dos blocos de distribuição”</strong>, verifique se o padrão de distribuição de chamadas está de acordo com o edital, quando houver regra específica. Se precisar ajustar, clique e arraste os blocos de vagas para reorganizar a ordem.
+                      <br/>
+                      Para voltar ao padrão inicial, clique em <strong>“Restaurar padrão”</strong> e confirme.
+                    </p>
+
+                    <div class="flex items-start gap-3 bg-gray-100 text-sm text-gray-600 rounded-lg mt-6 px-6 py-3">
+                      <i data-lucide="info" class="w-5 h-5 flex-shrink-0 mt-0.5" aria-hidden="true"></i>
+                      <div>
+                        O percentual de cotas é fixo. O sistema usa esta ordem a cada 10 chamadas:
+                        <ul class="list-disc pl-5 mt-1">
+                          <li><strong>1 PcD (10%);</strong></li>
+                          <li><strong>3 candidatos negros(as) (30%);</strong> e</li>
+                          <li><strong>6 da ampla concorrência (60%).</strong></li>
+                        </ul>
+                        <p class="mt-1">A ordem de distribuição para o restante da lista segue o padrão definido no segundo bloco.</p>
+                      </div>
+                    </div>
+
+                    <div class="flex flex-col items-center mt-6">
+                      <video autoplay loop muted playsinline class="border border-gray-400" style="max-width: 700px; width: 100%; border-radius: 8px; box-shadow: 6px 6px 3px 0px rgba(0, 0, 0, 0.2);">
+                        <source src="https://github.com/uailab/organizador-convocacao/raw/refs/heads/master/assets/3.4-blocos-de-distribuicao.webm" type="video/webm">
                       </video>
                       <p class="text-sm text-gray-500 text-center mt-2">Demonstração de como reordenar as vagas nos blocos de distribuição e restaurar o padrão</p>
                     </div>
+
                   </div>
 
                   <!-- Card 4 -->
