@@ -596,6 +596,7 @@
     <script>
       const CONFIG_PADRAO_INICIAL = JSON.parse('<?!= configPadraoInicial ?>');
       const IS_OWNER_INICIAL = "<?!= isOwnerInicial ?>" === "true";
+      const IS_ADMIN_INICIAL = "<?!= isAdminInicial ?>" === "true";
       const ADMIN_URL_INICIAL = "<?!= adminUrlInicial ?>";
     </script>
   </head>
@@ -3643,8 +3644,7 @@
       });
 
       function verificarSeEhOwner() {
-        // Dado embutido pelo servidor — sem round trip
-        if (IS_OWNER_INICIAL) {
+        if (IS_ADMIN_INICIAL) {
           const btnAdmin = document.getElementById('btnAdmin');
           btnAdmin.href = ADMIN_URL_INICIAL;
           btnAdmin.classList.remove('hidden');

@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls \"C:\\\\Users\\\\p0037463\\\\Desktop\\\\PROJETOS\\\\\" | Select-String -Pattern \"cooper\")",
+      "Read(//c/Users/p0037463/Desktop/**)",
+      "PowerShell(Get-ChildItem \"C:\\\\Users\\\\p0037463\\\\Desktop\\\\PROJETOS\\\\\" | Where-Object { $_.Name -match \"cooper\" } | Select-Object Name)"
+    ]
+  }
+}
