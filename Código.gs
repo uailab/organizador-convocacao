@@ -7,8 +7,7 @@ function doGet(e) {
   
   // Rota Admin
   if (page === 'admin') {
-    if (!isOwner()) {
-      // Mostra página de acesso negado
+    if (!isAdmin()) {
       return renderAccessDeniedPage();
     }
     return renderAdminPage();
@@ -27,6 +26,7 @@ function renderPublicPage() {
   template.configPadraoInicial = JSON.stringify(carregarConfigPadrao());
   const env = getEnvironmentInfo();
   template.isOwnerInicial = env.isOwner;
+  template.isAdminInicial = env.isAdmin;
   template.adminUrlInicial = env.adminUrl;
   return template.evaluate()
     .setTitle('Organizador de Convocação')
@@ -66,6 +66,31 @@ function checkIfOwner() {
   return isOwner();
 }
 
+function isAdmin() {
+  try {
+    if (isOwner()) return true;
+    const activeEmail = Session.getActiveUser().getEmail();
+    if (!activeEmail) return false;
+    const raw = PropertiesService.getScriptProperties().getProperty('ADMIN_EMAILS');
+    if (!raw) return false;
+    const list = JSON.parse(raw);
+    return list.includes(activeEmail.toLowerCase().trim());
+  } catch (error) {
+    Logger.log('Erro ao verificar admin: ' + error);
+    return false;
+  }
+}
+
+function appendLog(action, detalhes) {
+  try {
+    const id = PropertiesService.getScriptProperties().getProperty('LOG_SPREADSHEET_ID');
+    if (!id) return;
+    const sheet = SpreadsheetApp.openById(id).getSheetByName('logs');
+    if (!sheet) return;
+    sheet.appendRow([new Date().toISOString(), Session.getActiveUser().getEmail(), action, detalhes]);
+  } catch (_) {}
+}
+
 function renderAccessDeniedPage() {
   return HtmlService.createHtmlOutputFromFile('acesso-negado')
     .setTitle('Acesso Negado')
@@ -83,13 +108,17 @@ function getCurrentUserEmail() {
 // ============================================
 
 function salvarConfigPadrao(config) {
+  const lock = LockService.getScriptLock();
   try {
-    const scriptProperties = PropertiesService.getScriptProperties();
-    scriptProperties.setProperty('CONFIG_PADRAO', JSON.stringify(config));
+    lock.waitLock(10000);
+    PropertiesService.getScriptProperties().setProperty('CONFIG_PADRAO', JSON.stringify(config));
+    appendLog('SALVAR_CONFIG', JSON.stringify(config));
     return { success: true, message: 'Configurações salvas com sucesso!' };
   } catch (error) {
     Logger.log('Erro ao salvar config: ' + error);
     return { success: false, message: 'Erro ao salvar: ' + error.message };
+  } finally {
+    lock.releaseLock();
   }
 }
 
@@ -153,13 +182,17 @@ function getConfigDefault() {
 }
 
 function restaurarFactoryDefault() {
+  const lock = LockService.getScriptLock();
   try {
-    const scriptProperties = PropertiesService.getScriptProperties();
-    scriptProperties.deleteProperty('CONFIG_PADRAO');
+    lock.waitLock(10000);
+    PropertiesService.getScriptProperties().deleteProperty('CONFIG_PADRAO');
+    appendLog('RESTAURAR_PADRAO', 'Configuração restaurada para padrão de fábrica');
     return { success: true, message: 'Configurações restauradas para padrão de fábrica!' };
   } catch (error) {
     Logger.log('Erro ao restaurar: ' + error);
     return { success: false, message: 'Erro ao restaurar: ' + error.message };
+  } finally {
+    lock.releaseLock();
   }
 }
 
@@ -170,6 +203,7 @@ function restaurarFactoryDefault() {
 function getEnvironmentInfo() {
   return {
     isOwner: isOwner(),
+    isAdmin: isAdmin(),
     userEmail: Session.getActiveUser().getEmail(),
     scriptId: ScriptApp.getScriptId(),
     publicUrl: ScriptApp.getService().getUrl(),
